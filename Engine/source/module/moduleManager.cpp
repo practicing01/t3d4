@@ -262,7 +262,8 @@ bool ModuleManager::scanModules( const char* pPath, const bool rootOnly )
                 continue;
 
             // Register module.
-            registerModule( basePath, pFileInfo->pFileName );
+            //registerModule( basePath, pFileInfo->pFileName );
+            registerModule( pFileInfo->pFullPath, pFileInfo->pFileName );
         }
 
         // Stop processing if we're only processing the root.

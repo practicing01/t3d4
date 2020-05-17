@@ -48,6 +48,10 @@
 #include "scene/reflector.h"
 #endif
 
+#ifndef _COLLADA_UTILS_H_
+#include "ts/collada/colladaUtils.h"
+#endif
+
 #ifndef _ASSET_PTR_H_
 #include "assets/assetPtr.h"
 #endif 
@@ -187,10 +191,9 @@ protected:
 protected:
 
    Convex* mConvexList;
-
+   Resource<TSShape> mShape;
    StringTableEntry  mShapeName;
    U32               mShapeHash;
-   Resource<TSShape> mShape;
    Vector<S32> mCollisionDetails;
    Vector<S32> mLOSDetails;
    TSShapeInstance* mShapeInstance;
@@ -202,8 +205,9 @@ protected:
    String            mAppliedSkinName;
 
    bool              mPlayAmbient;
-   TSThread* mAmbientThread;
-
+   TSThread*         mAmbientThread;
+   F32               mAnimOffset;
+   F32               mAnimSpeed;
    /// The type of mesh data to return for collision queries.
    MeshType mCollisionType;
 
@@ -263,6 +267,7 @@ public:
 
    Resource<TSShape> getShape() const { return mShape; }
    StringTableEntry getShapeFileName() { return mShapeName; }
+
    void setShapeFileName(StringTableEntry shapeName) { mShapeName = shapeName; }
 
    TSShapeInstance* getShapeInstance() const { return mShapeInstance; }
@@ -272,6 +277,7 @@ public:
    const Vector<S32>& getCollisionDetails() const { return mCollisionDetails; }
 
    const Vector<S32>& getLOSDetails() const { return mLOSDetails; }
+   bool hasAnim() { return mAmbientThread != NULL; }
 
    virtual void onInspect(GuiInspector*);
 
@@ -288,6 +294,7 @@ public:
    bool           mInvertGradientRange;
    Point2F        mGradientRangeUser;
    Point2F        mGradientRange;
+   bool isMusicbox;
 private:
    void           set_special_typing();
    virtual void setSelectionFlags(U8 flags);

@@ -133,15 +133,19 @@ TSStatic::TSStatic()
    mPhysicsRep = NULL;
 
    mCollisionType = CollisionMesh;
-   mDecalType = CollisionMesh;
+   mDecalType = VisibleMesh;
 
-   mIgnoreZodiacs = false;
+   mIgnoreZodiacs = true;
    mHasGradients = false;
    mInvertGradientRange = false;
    mGradientRangeUser.set(0.0f, 180.0f);
 #ifdef TORQUE_AFX_ENABLED
    afxZodiacData::convertGradientRangeFromDegrees(mGradientRange, mGradientRangeUser);
 #endif
+   isMusicbox = false;
+
+   mAnimOffset = 0.0f;
+   mAnimSpeed = 1.0f;
 
    mShapeAsset = StringTable->EmptyString();
    mShapeAssetId = StringTable->EmptyString();
@@ -164,9 +168,20 @@ ImplementEnumType(TSMeshType,
    { TSStatic::VisibleMesh,   "Visible Mesh",   "Rendered mesh polygons." },
       EndImplementEnumType;
 
+FRangeValidator percentValidator(0.0f, 1.0f);
+F32 AnimSpeedMax = 4.0f;
+FRangeValidator speedValidator(0.0f, AnimSpeedMax);
 
 void TSStatic::initPersistFields()
 {
+   addField("isMusicbox", TypeBool, Offset(isMusicbox, TSStatic),
+      "Does this object emmit level music?");
+
+   addFieldV("AnimOffset", TypeF32, Offset(mAnimOffset, TSStatic), &percentValidator,
+      "Percent Animation Offset.");
+
+   addFieldV("AnimSpeed", TypeF32, Offset(mAnimSpeed, TSStatic), &speedValidator,
+      "Percent Animation Speed.");
    addGroup("Shape");
 
    addProtectedField("shapeAsset", TypeShapeAssetId, Offset(mShapeAssetId, TSStatic),
@@ -264,7 +279,6 @@ void TSStatic::initPersistFields()
 bool TSStatic::_setShapeAsset(void* obj, const char* index, const char* data)
 {
    TSStatic* ts = static_cast<TSStatic*>(obj);// ->setFile(FileName(data));
-
    ts->mShapeAssetId = StringTable->insert(data);
 
    return ts->setShapeAsset(ts->mShapeAssetId);
@@ -272,29 +286,17 @@ bool TSStatic::_setShapeAsset(void* obj, const char* index, const char* data)
 
 bool TSStatic::_setShapeName(void* obj, const char* index, const char* data)
 {
-   TSStatic* ts = static_cast<TSStatic*>(obj);// ->setFile(FileName(data));
+   TSStatic* ts = static_cast<TSStatic*>(obj);
+   ts->mShapeName = data;
 
    StringTableEntry assetId = ShapeAsset::getAssetIdByFilename(StringTable->insert(data));
    if (assetId != StringTable->EmptyString())
    {
       //Special exception case. If we've defaulted to the 'no shape' mesh, don't save it out, we'll retain the original ids/paths so it doesn't break
       //the TSStatic
-      if (ts->setShapeAsset(assetId))
-      {
-         if (assetId == StringTable->insert("Core_Rendering:noShape"))
-         {
-            ts->mShapeName = data;
-            return true;
-         }
-
-         return false;
-      }
-    }
-   else
-   {
-      ts->mShapeAsset = StringTable->EmptyString();
+      if (!ts->setShapeAsset(assetId))
+         ts->mShapeAsset = "Core_Rendering:noShape";
    }
-
    return false;
 }
 
@@ -400,7 +402,7 @@ bool TSStatic::setShapeAsset(const StringTableEntry shapeAssetId)
       //the TSStatic
       if (mShapeAsset.getAssetId() != StringTable->insert("Core_Rendering:noshape"))
       {
-         mShapeName = StringTable->EmptyString();
+         mShapeName = mShapeAsset->getShapeFilename();
       }
 
       _createShape();
@@ -423,9 +425,9 @@ bool TSStatic::_createShape()
    SAFE_DELETE(mPhysicsRep);
    SAFE_DELETE(mShapeInstance);
    mAmbientThread = NULL;
-   mShape = NULL;
 
-   if(!mShapeAsset.isNull())
+   mShape = ResourceManager::get().load(mShapeName);
+   if(!mShape && !mShapeAsset.isNull())
    {
       //Special-case handling, usually because we set noShape
       mShape = mShapeAsset->getShapeResource();
@@ -447,12 +449,8 @@ bool TSStatic::_createShape()
 
    mShapeInstance = new TSShapeInstance(mShape, isClientObject());
    if (isClientObject())
-   {
       mShapeInstance->cloneMaterialList();
-   }
 
-   if (isClientObject())
-      mShapeInstance->cloneMaterialList();
    if (isGhost())
    {
       // Reapply the current skin
@@ -468,8 +466,8 @@ bool TSStatic::_createShape()
    if (ambientSeq > -1 && !mAmbientThread)
       mAmbientThread = mShapeInstance->addThread();
 
-   if (mAmbientThread)
-      mShapeInstance->setSequence(mAmbientThread, ambientSeq, 0);
+   if ( mAmbientThread )
+      mShapeInstance->setSequence(mAmbientThread, ambientSeq, mAnimOffset);
 
    // Resolve CubeReflectorDesc.
    if (cubeDescName.isNotEmpty())
@@ -492,10 +490,9 @@ bool TSStatic::_createShape()
       {
          StringTableEntry materialname = StringTable->insert(mShape->materialList->getMaterialName(i).c_str());
 
-         dSprintf(matFieldName, 128, "MaterialSlot%d", i);
-         StringTableEntry matFld = StringTable->insert(matFieldName);
-
-         setDataField(matFld, NULL, materialname);
+            dSprintf(matFieldName, 128, "MaterialSlot%d", i);
+            StringTableEntry matFld = StringTable->insert(matFieldName);
+            setDataField(matFld, NULL, materialname);
       }
    }
 
@@ -713,9 +710,11 @@ void TSStatic::reSkin()
 
 void TSStatic::processTick(const Move* move)
 {
-   if (isServerObject() && mPlayAmbient && mAmbientThread)
-      mShapeInstance->advanceTime(TickSec, mAmbientThread);
-
+   if ( isServerObject() && mPlayAmbient && mAmbientThread )
+   {
+      mShapeInstance->setTimeScale(mAmbientThread, mAnimSpeed);
+      mShapeInstance->advanceTime( TickSec, mAmbientThread );
+   }
    if (isMounted())
    {
       MatrixF mat(true);
@@ -730,8 +729,11 @@ void TSStatic::interpolateTick(F32 delta)
 
 void TSStatic::advanceTime(F32 dt)
 {
-   if (mPlayAmbient && mAmbientThread)
-      mShapeInstance->advanceTime(dt, mAmbientThread);
+   if ( mPlayAmbient && mAmbientThread )
+   {
+      mShapeInstance->setTimeScale(mAmbientThread, mAnimSpeed);
+      mShapeInstance->advanceTime( dt, mAmbientThread );
+   }
 
    if (isMounted())
    {
@@ -964,7 +966,6 @@ U32 TSStatic::packUpdate(NetConnection* con, U32 mask, BitStream* stream)
    {
       stream->writeString(mShapeAsset.getAssetId());
       stream->writeString(mShapeName);
-
       stream->write((U32)mDecalType);
 
       stream->writeFlag(mAllowPlayerStep);
@@ -974,6 +975,12 @@ U32 TSStatic::packUpdate(NetConnection* con, U32 mask, BitStream* stream)
       stream->write(mRenderNormalScalar);
 
       stream->write(mForceDetail);
+
+   if (stream->writeFlag(mAnimOffset != 0.0f))
+      stream->writeFloat(mAnimOffset, 7);
+
+   if (stream->writeFlag(mAnimSpeed != 1.0f))
+      stream->writeSignedFloat(mAnimSpeed / AnimSpeedMax, 7);
 
       stream->writeFlag(mPlayAmbient);
    }
@@ -1087,6 +1094,13 @@ void TSStatic::unpackUpdate(NetConnection* con, BitStream* stream)
       stream->read(&mRenderNormalScalar);
 
       stream->read(&mForceDetail);
+
+   if (stream->readFlag())
+      mAnimOffset = stream->readFloat(7);
+
+   if (stream->readFlag())
+      mAnimSpeed = stream->readSignedFloat(7) * AnimSpeedMax;
+
       mPlayAmbient = stream->readFlag();
 
 
@@ -1199,8 +1213,21 @@ bool TSStatic::castRay(const Point3F& start, const Point3F& end, RayInfo* info)
 
 bool TSStatic::castRayRendered(const Point3F& start, const Point3F& end, RayInfo* info)
 {
-   if (!mShapeInstance)
+   if (!mShapeInstance || mDecalType == None)
       return false;
+
+   if (mDecalType == Bounds)
+   {
+      F32 fst;
+      if (!mObjBox.collideLine(start, end, &fst, &info->normal))
+         return false;
+
+      info->t = fst;
+      info->object = this;
+      info->point.interpolate(start, end, fst);
+      info->material = NULL;
+      return true;
+   }
 
    // Cast the ray against the currently visible detail
    RayInfo localInfo;
@@ -1356,7 +1383,7 @@ bool TSStatic::buildExportPolyList(ColladaUtils::ExportData* exportData, const B
          ColladaUtils::ExportData::detailLevel* curDetail = &meshData->meshDetailLevels.last();
 
          //Make sure we denote the size this detail level has
-         curDetail->size = detail.size;
+         curDetail->size = getNextPow2(detail.size);
       }
    }
 
@@ -1486,7 +1513,7 @@ void TSStaticPolysoupConvex::getPolyList(AbstractPolyList* list)
 void TSStaticPolysoupConvex::getFeatures(const MatrixF& mat, const VectorF& n, ConvexFeature* cf)
 {
    cf->material = 0;
-   cf->object = mObject;
+   cf->mObject = mObject;
 
    // For a tetrahedron this is pretty easy... first
    // convert everything into world space.
