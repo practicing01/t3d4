@@ -5,10 +5,23 @@ new GuiControlProfile( GuiMenuButtonProfile )
    border = false;
    fontSize = 18;
    fontType = "Arial Bold";
+<<<<<<< HEAD
    fontColor = "240 240 240";
    fontColorHL = "0 0 0";
    fontColorNA = "0 0 0";
    fontColorSEL ="0 0 0";
+=======
+   fontColor = "200 200 200";
+   fontColorHL = "80 80 80";
+   fontColorNA = "0 0 0";
+   fontColorSEL = "0 0 0";
+   fillColor = "255 255 255 120";
+   fillColorHL = "100 100 100 50";
+   fillColorNA = "0 0 0 50";
+   borderColor = "0 0 0 0";
+   borderColorNA = "0 0 0 0";
+   borderColorHL = "0 0 0 0";
+>>>>>>> unifiedRepo/Preview4_0
    fixedExtent = false;
    justify = "center";
    canKeyFocus = false;
@@ -207,6 +220,10 @@ new GuiControlProfile( GuiTextArrayProfile : GuiTextProfile )
    fillColorSEL = "180 180 180";
    border = false;
    category = "Core";
+<<<<<<< HEAD
+=======
+   canKeyFocus = true;
+>>>>>>> unifiedRepo/Preview4_0
 };
 
 // ----------------------------------------------------------------------------
@@ -404,11 +421,19 @@ new GuiControlProfile( GuiSliderProfile )
 if(!isObject(GuiMenuScrollProfile))
 new GuiControlProfile(GuiMenuScrollProfile)
 {
+<<<<<<< HEAD
    opaque = true;
    fillcolor = "50 50 50";
    fontColor = "200 200 200";
    fontColorHL = "250 250 250";
    border = true;
+=======
+   opaque = false;
+   fillcolor = "50 50 50";
+   fontColor = "200 200 200";
+   fontColorHL = "250 250 250";
+   border = false;
+>>>>>>> unifiedRepo/Preview4_0
    bitmap = "data/ui/images/scrollBar";
    hasBitmapArray = true;
    category = "Core";

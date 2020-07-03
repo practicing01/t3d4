@@ -484,6 +484,15 @@ DefineEngineMethod( GuiGameListOptionsCtrl, setOptions, void, ( S32 row, const c
    object->setOptions( row, optionsList );
 }
 
+DefineEngineMethod(GuiGameListOptionsCtrl, clearOptions, void, (), ,
+   "Sets the list of options on the given row.\n\n"
+   "@param row Index of the row to set options on."
+   "@param optionsList A tab separated list of options for the control.")
+{
+   object->clearRows();
+}
+
+
 //-----------------------------------------------------------------------------
 // GuiGameListOptionsProfile
 //-----------------------------------------------------------------------------

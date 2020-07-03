@@ -460,6 +460,7 @@ endif()
 if(TORQUE_SDL)
     addPathRec("${srcDir}/windowManager/sdl")
     addPathRec("${srcDir}/platformSDL")
+    set(BLACKLIST "")
 
     if(TORQUE_OPENGL)
       addPathRec("${srcDir}/gfx/gl/sdl")

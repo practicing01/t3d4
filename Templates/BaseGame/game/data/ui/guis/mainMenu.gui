@@ -3,6 +3,9 @@ exec( "tools/gui/profiles.ed.cs" );
 //--- OBJECT WRITE BEGIN ---
 %guiContent = new GuiChunkedBitmapCtrl(MainMenuGui) {
    bitmap = "data/ui/images/BackgroundImage.png";
+=======
+   bitmap = "data/ui/images/background-dark.png";
+>>>>>>> unifiedRepo/Preview4_0
    useVariable = "0";
    tile = "0";
    position = "0 0";
@@ -20,9 +23,16 @@ exec( "tools/gui/profiles.ed.cs" );
    canSaveDynamicFields = "1";
       Enabled = "1";
       isDecoy = "0";
+<<<<<<< HEAD
 
    new GuiBitmapButtonCtrl(MainMenuAppLogo) {
       bitmap = "data/ui/images/Torque-3D-logo-shortcut";
+=======
+      navigationIndex = "-1";
+
+   new GuiBitmapButtonCtrl(MainMenuAppLogo) {
+      bitmap = "data/ui/images/Torque-3D-logo";
+>>>>>>> unifiedRepo/Preview4_0
       bitmapMode = "Stretched";
       autoFitExtents = "0";
       useModifiers = "0";
@@ -45,6 +55,7 @@ exec( "tools/gui/profiles.ed.cs" );
       isContainer = "0";
       canSave = "1";
       canSaveDynamicFields = "1";
+<<<<<<< HEAD
    };
    new GuiControl(MainMenuButtonContainer) {
       position = "20 193";
@@ -52,6 +63,35 @@ exec( "tools/gui/profiles.ed.cs" );
       minExtent = "8 2";
       horizSizing = "right";
       vertSizing = "center";
+=======
+         navigationIndex = "-1";
+   };
+   new GuiGameListMenuCtrl(MainMenuButtonList) {
+      class = "UIMenuButtonList";
+      debugRender = "0";
+      callbackOnA = "MainMenuButtonList.activateRow();";
+      callbackOnInputs = "1";
+      position = "292 103";
+      extent = "439 561";
+      minExtent = "8 2";
+      horizSizing = "center";
+      vertSizing = "center";
+      profile = "DefaultListMenuProfile";
+      visible = "1";
+      active = "1";
+      tooltipProfile = "GuiToolTipProfile";
+      hovertime = "1000";
+      isContainer = "0";
+      canSave = "1";
+      canSaveDynamicFields = "0";
+   };
+   new GuiControl(MainMenuButtonHolder) {
+      position = "190 652";
+      extent = "646 130";
+      minExtent = "8 2";
+      horizSizing = "center";
+      vertSizing = "top";
+>>>>>>> unifiedRepo/Preview4_0
       profile = "GuiDefaultProfile";
       visible = "1";
       active = "1";
@@ -60,6 +100,7 @@ exec( "tools/gui/profiles.ed.cs" );
       isContainer = "1";
       canSave = "1";
       canSaveDynamicFields = "0";
+<<<<<<< HEAD
 
       new GuiDynamicCtrlArrayControl() {
          colCount = "1";
@@ -229,6 +270,8 @@ exec( "tools/gui/profiles.ed.cs" );
             canSaveDynamicFields = "0";
          };
       };
+=======
+>>>>>>> unifiedRepo/Preview4_0
    };
 };
 //--- OBJECT WRITE END ---

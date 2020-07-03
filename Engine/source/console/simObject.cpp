@@ -2238,6 +2238,7 @@ void SimObject::inspectPreApply()
 
 void SimObject::inspectPostApply()
 {
+   onInspectPostApply_callback(this);
 }
 
 //-----------------------------------------------------------------------------

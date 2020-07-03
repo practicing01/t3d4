@@ -111,6 +111,8 @@ public:
    /// \param event A reference to the event that triggered the callback.
    virtual bool onGamepadAxisRight(const GuiEvent &event);
 
+   virtual void clearRows();
+
    GuiGameListOptionsCtrl();
    ~GuiGameListOptionsCtrl();
 

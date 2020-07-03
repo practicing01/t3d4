@@ -15,6 +15,8 @@
 function UI::onCreate( %this )
 {
    %bool = true;
+=======
+>>>>>>> unifiedRepo/Preview4_0
 }
 
 function UI::onDestroy( %this )
@@ -37,6 +39,7 @@ function UI::initClient(%this)
    exec("./scripts/profiles.cs");
    
    //Now gui files
+<<<<<<< HEAD
    exec("./guis/mainMenu.gui");
    exec("./guis/mainMenu.cs");
    
@@ -53,16 +56,43 @@ function UI::initClient(%this)
    
    exec("./guis/pauseMenu.gui");
    exec("./guis/pauseMenu.cs");
+=======
+   exec("./guis/guiGamepadButton.cs");
+   exec("./guis/guiGamepadButton.gui");
+   
+   exec("./guis/mainMenu.cs");
+   exec("./guis/mainMenu.gui");
+   
+   exec("./guis/chooseLevelDlg.cs");
+   exec("./guis/chooseLevelDlg.gui");
+   
+   exec("./guis/joinServerMenu.cs");
+   exec("./guis/joinServerMenu.gui");
+   
+   exec("./guis/loadingGui.gui");
+   
+   exec("./guis/optionsMenu.cs");
+   exec("./guis/optionsMenu.gui");
+   
+   exec("./guis/pauseMenu.cs");
+   exec("./guis/pauseMenu.gui");
+>>>>>>> unifiedRepo/Preview4_0
    
    exec("./guis/remapDlg.gui");
    exec("./guis/remapConfirmDlg.gui");
    
+<<<<<<< HEAD
    exec("./guis/profiler.gui");
    exec("./guis/profiler.cs");
+=======
+   exec("./guis/profiler.cs");
+   exec("./guis/profiler.gui");
+>>>>>>> unifiedRepo/Preview4_0
    
    exec("./guis/netGraphGui.gui");
    exec("./guis/RecordingsDlg.gui");
    
+<<<<<<< HEAD
    //exec("./guis/FileDialog.gui");
    //exec("./guis/FileDialog.cs");
    
@@ -85,12 +115,33 @@ function UI::initClient(%this)
    exec("./scripts/messageBoxes.cs");
    exec("./scripts/help.cs");
    exec("./scripts/cursors.cs");
+=======
+   exec("./guis/guiMusicPlayer.cs");
+   exec("./guis/guiMusicPlayer.gui");
+   
+   exec("./guis/startupGui.cs");
+   exec("./guis/startupGui.gui");
+   
+   // Load Editor Dialogs
+   exec("./guis/messageBoxDlg.gui");
+   
+   //Load scripts
+   exec("./scripts/controlsMenu.cs");
+   exec("./scripts/messageBoxes.cs");
+   exec("./scripts/help.cs");
+   exec("./scripts/cursors.cs");
+   exec("./scripts/utility.cs");
+   exec("./scripts/default.keybinds.cs");
+>>>>>>> unifiedRepo/Preview4_0
    
    exec("./guis/menuGraphics.gui");
    exec("./guis/menuGraphics.cs");
    
+<<<<<<< HEAD
    //exec("./scripts/GuiTreeViewCtrl.cs");
    
+=======
+>>>>>>> unifiedRepo/Preview4_0
    loadStartup();
 }
 

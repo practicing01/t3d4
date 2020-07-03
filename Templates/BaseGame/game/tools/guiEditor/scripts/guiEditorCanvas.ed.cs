@@ -437,6 +437,15 @@ function GuiEditCanvas::save( %this, %selectedOnly, %noPrompt )
      
       %fo = new FileObject();
       %fo.openForWrite(%filename);
+=======
+      if(!%fo.openForWrite(%filename))
+      {
+        error("GuiEditCanvas::save() - Unable to save, file location not open for writing.");
+        %fo.close();
+             
+        return false;
+      }
+>>>>>>> unifiedRepo/Preview4_0
       
       // Write out the captured TorqueScript that was before the object before the object
       for( %i = 0; %i <= %beforeLines; %i++)

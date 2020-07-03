@@ -799,6 +799,8 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
 
       DECLARE_CONOBJECT( SceneObject );
 	  DECLARE_CALLBACK(void, onInspectPostApply, (SceneObject* obj));
+=======
+>>>>>>> unifiedRepo/Preview4_0
    private:
 
       SceneObject( const SceneObject& ); ///< @deprecated disallowed

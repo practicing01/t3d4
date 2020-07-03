@@ -42,7 +42,11 @@ function Core_Rendering::initClient(%this)
    
    //Autodetect settings if it's our first time
    if($pref::Video::autoDetect)
+<<<<<<< HEAD
       GraphicsMenu.Autodetect();
+=======
+      AutodetectGraphics();
+>>>>>>> unifiedRepo/Preview4_0
 
    postFXInit();
    

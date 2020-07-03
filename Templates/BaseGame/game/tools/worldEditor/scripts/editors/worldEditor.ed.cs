@@ -489,4 +489,14 @@ function foCollaps (%this, %tab){
       case "container2":
          %tab.visible = "0";
    }
+<<<<<<< HEAD
 }
+=======
+}
+
+function simGroup::onInspectPostApply(%this)
+{
+    %this.callOnChildren("setHidden",%this.hidden);
+    %this.callOnChildren("setLocked",%this.locked);    
+}
+>>>>>>> unifiedRepo/Preview4_0

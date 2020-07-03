@@ -30,6 +30,17 @@ function ChooseLevelDlg::onWake( %this )
    %this->levelName.visible = false;
    %this->LevelDescriptionLabel.visible = false;
    %this->LevelDescription.visible = false;
+=======
+   if(!isObject(LevelListEntries))
+      new ArrayObject(LevelListEntries){};
+      
+   LevelList.clearRows();
+   LevelListEntries.empty();
+   
+   ChooseLevelWindow->CurrentPreview.setBitmap("data/ui/images/no-preview");
+   ChooseLevelWindow->LevelDescriptionLabel.visible = false;
+   ChooseLevelWindow->LevelDescription.visible = false;
+>>>>>>> unifiedRepo/Preview4_0
    
    %assetQuery = new AssetQuery();
    AssetDatabase.findAssetType(%assetQuery, "LevelAsset");
@@ -76,6 +87,7 @@ function ChooseLevelDlg::onWake( %this )
       %this.addMissionFile( "tools/levels/DefaultEditorLevel.mis" );
    }
 
+<<<<<<< HEAD
    // Sort our list
    CL_levelList.sort(0);
 
@@ -83,6 +95,24 @@ function ChooseLevelDlg::onWake( %this )
    CL_levelList.setSelectedRow(0);
 
    for (%i = 0; %i < CL_levelList.rowCount(); %i++)
+=======
+   for(%i=0; %i < LevelListEntries.count(); %i++)
+   {
+      %levelEntry = LevelListEntries.getKey(%i);
+      
+      LevelList.addRow(getField(%levelEntry, 0), "", -1, -30);
+   }
+   
+   LevelList.setSelected(0);
+   LevelList.onChange();
+   
+   if(!$pref::HostMultiPlayer)
+      LevelSelectTitle.setText("SINGLE PLAYER");
+   else
+      LevelSelectTitle.setText("CREATE SERVER");
+   
+   /*for (%i = 0; %i < LevelList.rowCount(); %i++)
+>>>>>>> unifiedRepo/Preview4_0
    {
       %preview = new GuiButtonCtrl() {
          profile = "GuiMenuButtonProfile";
@@ -127,6 +157,7 @@ function ChooseLevelDlg::onWake( %this )
       %desc = getField(CL_levelList.getRowText(%i), 2);
 
       %preview.levelDesc = %desc;
+<<<<<<< HEAD
    }
 
    ChooseLevelWindow->SmallPreviews.firstVisible = -1;
@@ -188,6 +219,33 @@ function ChooseLevelDlg::onWake( %this )
 
       //ChooseLevelWIndow.setExtent(%extentX, %extentY);
    //}*/
+=======
+   }*/
+}
+
+function ChooseLevelButtonHolder::onWake(%this)
+{
+   %this.refresh();
+}
+
+function ChooseLevelButtonHolder::refresh(%this)
+{
+   ChooseLevelButtonHolder.add(GamepadButtonsGui);
+   
+   GamepadButtonsGui.clearButtons();
+   
+   GamepadButtonsGui.setButton(2, "A", "Enter", "Start Level", "ChooseLevelDlg.beginLevel();");
+   GamepadButtonsGui.setButton(3, "B", "Esc", "Back", "ChooseLevelDlg.backOut();");
+   
+   GamepadButtonsGui.refreshButtons();
+}
+
+function ChooseLevelDlg::onSleep( %this )
+{
+   // This is set from the outside, only stays true for a single wake/sleep
+   // cycle.
+   %this.launchInEditor = false;
+>>>>>>> unifiedRepo/Preview4_0
 }
 
 function ChooseLevelDlg::addMissionFile( %this, %file )
@@ -213,7 +271,11 @@ function ChooseLevelDlg::addMissionFile( %this, %file )
       %LevelInfoObject.delete();
    }
 
+<<<<<<< HEAD
    CL_levelList.addRow( CL_levelList.rowCount(), %levelName TAB %file TAB %levelDesc TAB %levelPreview );
+=======
+   LevelListEntries.add( %levelName TAB %file TAB %levelDesc TAB %levelPreview );
+>>>>>>> unifiedRepo/Preview4_0
 }
 
 function ChooseLevelDlg::addLevelAsset( %this, %levelAsset )
@@ -245,6 +307,7 @@ function ChooseLevelDlg::addLevelAsset( %this, %levelAsset )
    %levelDesc = %levelAsset.description;
    %levelPreview = %levelAsset.levelPreviewImage;
    
+<<<<<<< HEAD
    CL_levelList.addRow( CL_levelList.rowCount(), %levelName TAB %file TAB %levelDesc TAB %levelPreview );
 }
 
@@ -347,11 +410,63 @@ function ChooseLevelWindow::nextPreviews(%this)
       %firstVisibleObj.setVisible(false);
       %firstHiddenObj.setVisible(true);
    }
+=======
+   LevelListEntries.add( %levelName TAB %file TAB %levelDesc TAB %levelPreview );
+}
+
+function LevelList::onChange(%this)
+{
+   %index = %this.getSelectedRow();
+   
+   %levelEntry = LevelListEntries.getKey(%index);
+   
+   // Get the name
+   ChooseLevelWindow->LevelName.text = getField(%levelEntry, 0);
+   
+   // Get the level file
+   $selectedLevelFile = getField(%levelEntry, 1);
+   
+   // Find the preview image
+   %levelPreview = getField(%levelEntry, 3);
+   
+   // Test against all of the different image formats
+   // This should probably be moved into an engine function
+   if (isFile(%levelPreview @ ".png") ||
+       isFile(%levelPreview @ ".jpg") ||
+       isFile(%levelPreview @ ".bmp") ||
+       isFile(%levelPreview @ ".gif") ||
+       isFile(%levelPreview @ ".jng") ||
+       isFile(%levelPreview @ ".mng") ||
+       isFile(%levelPreview @ ".tga"))
+      ChooseLevelWindow->CurrentPreview.setBitmap(%previewFile);
+   else
+      ChooseLevelWindow->CurrentPreview.setBitmap("data/ui/images/no-preview");
+
+   // Get the description
+   %levelDesc = getField(%levelEntry, 2);
+   
+   if(%levelDesc !$= "")
+   {
+      ChooseLevelWindow->LevelDescriptionLabel.setVisible(true);
+      ChooseLevelWindow->LevelDescription.setVisible(true);
+      ChooseLevelWindow->LevelDescription.setText(%levelDesc);
+   }
+   else
+   {
+      ChooseLevelWindow->LevelDescriptionLabel.setVisible(false);
+      ChooseLevelWindow->LevelDescription.setVisible(false);
+   }
+   
+>>>>>>> unifiedRepo/Preview4_0
 }
 
 // Do this onMouseUp not via Command which occurs onMouseDown so we do
 // not have a lingering mouseUp event lingering in the ether.
+<<<<<<< HEAD
 function ChooseLevelDlgGoBtn::onMouseUp( %this )
+=======
+function ChooseLevelDlg::beginLevel(%this)
+>>>>>>> unifiedRepo/Preview4_0
 {
    // So we can't fire the button when loading is in progress.
    if ( isObject( ServerGroup ) )
@@ -370,3 +485,12 @@ function ChooseLevelDlgGoBtn::onMouseUp( %this )
    }
 }
 
+<<<<<<< HEAD
+=======
+function ChooseLevelDlg::backOut(%this)
+{
+   Canvas.popDialog(ChooseLevelDlg);
+   if(isObject(ChooseLevelDlg.returnGui) && ChooseLevelDlg.returnGui.isMethod("onReturnTo"))    
+      ChooseLevelDlg.returnGui.onReturnTo();  
+}
+>>>>>>> unifiedRepo/Preview4_0

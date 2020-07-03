@@ -45,7 +45,7 @@ namespace
       FEATUREMGR->registerFeature( MFT_TerrainParallaxMap, new NamedFeatureGLSL( "Terrain Parallax Texture" ) );   
       FEATUREMGR->registerFeature( MFT_TerrainDetailMap, new TerrainDetailMapFeatGLSL );
       FEATUREMGR->registerFeature( MFT_TerrainNormalMap, new TerrainNormalMapFeatGLSL );
-      FEATUREMGR->registerFeature( MFT_TerrainMacroMap, new TerrainMacroMapFeatGLSL );
+      FEATUREMGR->registerFeature( MFT_TerrainMacroMap, new NamedFeatureGLSL("TerrainMacroMap Deprecated")); // new TerrainMacroMapFeatGLSL);
       FEATUREMGR->registerFeature( MFT_TerrainLightMap, new TerrainLightMapFeatGLSL );
       FEATUREMGR->registerFeature( MFT_TerrainSideProject, new NamedFeatureGLSL( "Terrain Side Projection" ) );
       FEATUREMGR->registerFeature( MFT_TerrainAdditive, new TerrainAdditiveFeatGLSL );
@@ -1019,19 +1019,28 @@ void TerrainNormalMapFeatGLSL::processPix(   Vector<ShaderComponent*> &component
    LangElement *bumpNormDecl = new DecOp( bumpNorm );
    meta->addStatement( expandNormalMap( texOp, bumpNormDecl, bumpNorm, fd ) );
 
-   // Normalize is done later... 
-   // Note: The reverse mul order is intentional. Affine matrix.
-   meta->addStatement( new GenOp( "      @ = lerp( @, tMul( @.xyz, @ ), min( @, @.w ) );\r\n", 
-      gbNormal, gbNormal, bumpNorm, viewToTangent, detailBlend, inDet ) );
-
-   // End the conditional block.
-   meta->addStatement( new GenOp( "   }\r\n" ) );
-
    // If this is the last normal map then we 
    // can test to see the total blend value
    // to see if we should clip the result.
-   //if ( fd.features.getNextFeatureIndex( MFT_TerrainNormalMap, normalIndex ) == -1 )
-      //meta->addStatement( new GenOp( "   clip( @ - 0.0001f );\r\n", blendTotal ) );
+   Var* blendTotal = (Var*)LangElement::find("blendTotal");
+   if (blendTotal)
+   {
+      if (fd.features.getNextFeatureIndex(MFT_TerrainNormalMap, normalIndex) == -1)
+         meta->addStatement(new GenOp("   if ( @ > 0.0001f ){\r\n\r\n", blendTotal));
+   }
+   // Normalize is done later... 
+   // Note: The reverse mul order is intentional. Affine matrix.
+   meta->addStatement(new GenOp("      @ = lerp( @, tMul( @.xyz, @ ), min( @, @.w ) );\r\n",
+      gbNormal, gbNormal, bumpNorm, viewToTangent, detailBlend, inDet));
+
+   if (blendTotal)
+   {
+      if (fd.features.getNextFeatureIndex(MFT_TerrainNormalMap, normalIndex) == -1)
+         meta->addStatement(new GenOp("   }\r\n"));
+   }
+
+   // End the conditional block.
+   meta->addStatement( new GenOp( "   }\r\n" ) );
 
    output = meta;
 }
@@ -1103,11 +1112,20 @@ void TerrainAdditiveFeatGLSL::processPix( Vector<ShaderComponent*> &componentLis
                                           const MaterialFeatureData &fd )
 {
    Var *color = NULL;
+<<<<<<< HEAD
    if (fd.features[MFT_isDeferred])
    {
        color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
    }
    else
+=======
+   Var* norm = NULL;
+   if (fd.features[MFT_isDeferred])
+   {
+      color = (Var*)LangElement::find(getOutputTargetVarName(ShaderFeature::RenderTarget1));
+      norm = (Var*)LangElement::find(getOutputTargetVarName(ShaderFeature::DefaultTarget));
+   }
+>>>>>>> unifiedRepo/Preview4_0
       color = (Var*)LangElement::find(getOutputTargetVarName(ShaderFeature::DefaultTarget));
 
    Var *blendTotal = (Var*)LangElement::find( "blendTotal" );
@@ -1118,6 +1136,13 @@ void TerrainAdditiveFeatGLSL::processPix( Vector<ShaderComponent*> &componentLis
 
    meta->addStatement( new GenOp( "   clip( @ - 0.0001 );\r\n", blendTotal ) );
    meta->addStatement( new GenOp( "   @.a = @;\r\n", color, blendTotal ) );
+<<<<<<< HEAD
+=======
+   if (fd.features[MFT_isDeferred])
+   {
+      meta->addStatement(new GenOp("   @.a = @;\r\n", norm, blendTotal));
+   }
+>>>>>>> unifiedRepo/Preview4_0
 
    output = meta;
 }

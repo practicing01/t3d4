@@ -86,10 +86,13 @@ function ControlsMenuOKButton::onClick(%this)
     OptionsMenu.backOut();
 }
 
+=======
+>>>>>>> unifiedRepo/Preview4_0
 function ControlsMenuDefaultsButton::onClick(%this)
 {
    //For this to work with module-style, we have to figure that somewhere, we'll set where our default keybind script is at.
    //This can be hardcoded in your actual project.
+<<<<<<< HEAD
    exec($KeybindPath);
    ControlsMenu.reload();
 }
@@ -174,6 +177,10 @@ function ControlsMenu::redoMapping( %device, %action, %cmd, %oldIndex, %newIndex
    %remapList = %this-->OptRemapList;
 	%remapList.setRowById( %oldIndex, buildFullMapString( %oldIndex ) );
 	%remapList.setRowById( %newIndex, buildFullMapString( %newIndex ) );
+=======
+   //exec($KeybindPath);
+   //ControlsMenu.reload();
+>>>>>>> unifiedRepo/Preview4_0
 }
 
 function getMapDisplayName( %device, %action )
@@ -231,16 +238,53 @@ function getMapDisplayName( %device, %action )
             error( "Unsupported Joystick input object passed to getDisplayMapName!" );
       }
 	}
+<<<<<<< HEAD
+=======
+	else if ( strstr( %device, "gamepad" ) != -1 )
+	{
+	   return %action;
+	   
+	   %pos = strstr( %action, "button" );
+		if ( %pos != -1 )
+		{
+			%mods = getSubStr( %action, 0, %pos );
+			%object = getSubStr( %action, %pos, 1000 );
+			%instance = getSubStr( %object, strlen( "button" ), 1000 );
+			return( %mods @ "joystick" @ ( %instance + 1 ) );
+		}
+		else
+	   { 
+	      %pos = strstr( %action, "thumb" );
+         if ( %pos != -1 )
+         {
+            //%instance = getSubStr( %action, strlen( "thumb" ), 1000 );
+            //return( "thumb" @ ( %instance + 1 ) );
+            return %action;
+         }
+         else
+            error( "Unsupported gamepad input object passed to getDisplayMapName!" );
+      }
+	}
+>>>>>>> unifiedRepo/Preview4_0
 		
 	return( "" );		
 }
 
+<<<<<<< HEAD
 function ControlsMenu::buildFullMapString( %this, %index )
 {
    %name       = $RemapName[%index];
    %cmd        = $RemapCmd[%index];
 
    %temp = moveMap.getBinding( %cmd );
+=======
+function buildFullMapString( %index, %actionMap, %deviceType )
+{
+   %name       = $RemapName[%index];
+   %cmd        = $RemapCmd[%index];
+   
+   %temp = %actionMap.getBinding( %cmd );
+>>>>>>> unifiedRepo/Preview4_0
    if ( %temp $= "" )
       return %name TAB "";
 
@@ -250,16 +294,30 @@ function ControlsMenu::buildFullMapString( %this, %index )
    for ( %i = 0; %i < %count; %i += 2 )
    {
       if ( %mapString !$= "" )
+<<<<<<< HEAD
          %mapString = %mapString @ ", ";
 
       %device = getField( %temp, %i + 0 );
       %object = getField( %temp, %i + 1 );
       %mapString = %mapString @ %this.getMapDisplayName( %device, %object );
+=======
+         continue;
+         //%mapString = %mapString @ ", ";
+         
+      %device = getField( %temp, %i + 0 );
+      %object = getField( %temp, %i + 1 );
+      
+      if(%deviceType !$= "" && !startsWith(%device, %deviceType))
+         continue;
+         
+      %mapString = %mapString @ getMapDisplayName( %device, %object );
+>>>>>>> unifiedRepo/Preview4_0
    }
 
    return %name TAB %mapString; 
 }
 
+<<<<<<< HEAD
 function ControlsMenu::fillRemapList( %this )
 {
    %remapList = %this-->OptRemapList;
@@ -278,6 +336,75 @@ function ControlsMenu::doRemap( %this )
 
 	RemapDlg-->OptRemapText.setValue( "Re-bind \"" @ %name @ "\" to..." );
 	OptRemapInputCtrl.index = %selId;
+=======
+function fillRemapList()
+{
+   %device = $remapListDevice;
+   
+	OptionsMenuSettingsList.clearRows();
+
+   //build out our list of action maps
+   %actionMapCount = ActionMapGroup.getCount();
+   
+   %actionMapList = "";
+   for(%i=0; %i < %actionMapCount; %i++)
+   {
+      %actionMap = ActionMapGroup.getObject(%i);
+      
+      if(%actionMap == GlobalActionMap.getId())
+         continue;
+      
+      %actionMapName = %actionMap.humanReadableName $= "" ? %actionMap.getName() : %actionMap.humanReadableName;
+      
+      if(%actionMapList $= "")
+         %actionMapList = %actionMapName;
+      else
+         %actionMapList = %actionMapList TAB %actionMapName;
+   }
+   
+   //If we didn't find any valid actionMaps, then just exit out
+   if(%actionMapList $= "")
+      return;
+      
+   if($activeRemapControlSet $= "")
+      $activeRemapControlSet = getField(%actionMapList, 0);
+   
+   OptionsMenuSettingsList.addOptionRow("Control Set", %actionMapList, false, "controlSetChanged", -1, -30, true, "Which keybind control set to edit", $activeRemapControlSet);
+	
+   for ( %i = 0; %i < $RemapCount; %i++ )
+   {
+      if(%device !$= "" && %device !$= $RemapDevice[%i])
+         continue;
+         
+      %actionMapName = $RemapActionMap[%i].humanReadableName $= "" ? $RemapActionMap[%i].getName() : $RemapActionMap[%i].humanReadableName; 
+         
+      if($activeRemapControlSet !$= %actionMapName)
+         continue;
+         
+      %keyMap = buildFullMapString( %i, $RemapActionMap[%i], %device );
+      %description = $RemapDescription[%i];
+      
+      OptionsMenuSettingsList.addKeybindRow(getField(%keyMap, 0), getButtonBitmap(%device, getField(%keyMap, 1)), "doKeyRemap", -1, -15, true, %description);
+   }
+
+   OptionsMenuSettingsList.refresh();
+      //OptionsMenu.addRow( %i, %this.buildFullMapString( %i ) );
+}
+
+function controlSetChanged()
+{
+   $activeRemapControlSet = OptionsMenuSettingsList.getCurrentOption(0);
+   fillRemapList();
+}
+
+function doKeyRemap( %rowIndex )
+{
+   %rowIndex--; //Offset the rowIndex to account for controlset option
+   %name = $RemapName[%rowIndex];
+
+	RemapDlg-->OptRemapText.setValue( "Re-bind \"" @ %name @ "\" to..." );
+	OptRemapInputCtrl.index = %rowIndex;
+>>>>>>> unifiedRepo/Preview4_0
 	Canvas.pushDialog( RemapDlg );
 }
 
@@ -309,6 +436,7 @@ function OptRemapInputCtrl::onInputEvent( %this, %device, %action )
 
    %cmd  = $RemapCmd[%this.index];
    %name = $RemapName[%this.index];
+<<<<<<< HEAD
 
    // Grab the friendly display name for this action
    // which we'll use when prompting the user below.
@@ -316,17 +444,38 @@ function OptRemapInputCtrl::onInputEvent( %this, %device, %action )
    
    // Get the current command this action is mapped to.
    %prevMap = moveMap.getCommand( %device, %action );
+=======
+   %actionMap = $RemapActionMap[%this.index];
+
+   // Grab the friendly display name for this action
+   // which we'll use when prompting the user below.
+   %mapName = getMapDisplayName( %device, %action );
+   
+   // Get the current command this action is mapped to.
+   %prevMap = %actionMap.getCommand( %device, %action );
+   
+   //TODO: clear all existant keybinds to a command and then bind it so we only have a single one at all times
+   unbindExtraActions( %cmd, %actionMap, 0 );
+   unbindExtraActions( %cmd, %actionMap, 1 );
+>>>>>>> unifiedRepo/Preview4_0
 
    // If nothing was mapped to the previous command 
    // mapping then it's easy... just bind it.
    if ( %prevMap $= "" )
    {
+<<<<<<< HEAD
       ControlsMenu.unbindExtraActions( %cmd, 1 );
       moveMap.bind( %device, %action, %cmd );
       
       //ControlsMenu.reload();
       %newCommands = getField(ControlsMenu.buildFullMapString( %this.index ), 1);
       ControlsMenuOptionsArray.getObject(%this.optionIndex)-->rebindButton.setText(%newCommands);
+=======
+      //unbindExtraActions( %cmd, %actionMap, 1 );
+      %actionMap.bind( %device, %action, %cmd );
+      
+      fillRemapList();
+>>>>>>> unifiedRepo/Preview4_0
       return;
    }
 
@@ -335,17 +484,28 @@ function OptRemapInputCtrl::onInputEvent( %this, %device, %action )
    // was already assigned.
    if ( %prevMap $= %cmd )
    {
+<<<<<<< HEAD
       ControlsMenu.unbindExtraActions( %cmd, 0 );
       moveMap.bind( %device, %action, %cmd );
 
       //ControlsMenu.reload();
       %newCommands = getField(ControlsMenu.buildFullMapString( %this.index ), 1);
       ControlsMenuOptionsArray.getObject(%this.optionIndex)-->rebindButton.setText(%newCommands);
+=======
+      //unbindExtraActions( %cmd, %actionMap, 0 );
+      %actionMap.bind( %device, %action, %cmd );
+
+      fillRemapList();
+>>>>>>> unifiedRepo/Preview4_0
       return;   
    }
 
    // Look for the index of the previous mapping.
+<<<<<<< HEAD
    %prevMapIndex = ControlsMenu.findRemapCmdIndex( %prevMap );
+=======
+   %prevMapIndex = findRemapCmdIndex( %prevMap );
+>>>>>>> unifiedRepo/Preview4_0
    
    // If we get a negative index then the previous 
    // mapping was to an item that isn't included in
@@ -357,7 +517,11 @@ function OptRemapInputCtrl::onInputEvent( %this, %device, %action )
    }
 
    // Setup the forced remapping callback command.
+<<<<<<< HEAD
    %callback = "redoMapping(" @ %device @ ", \"" @ %action @ "\", \"" @
+=======
+   %callback = "redoMapping(" @ %device @ ", " @ %actionMap @ ", \"" @ %action @ "\", \"" @
+>>>>>>> unifiedRepo/Preview4_0
                               %cmd @ "\", " @ %prevMapIndex @ ", " @ %this.index @ ");";
    
    // Warn that we're about to remove the old mapping and
@@ -367,7 +531,11 @@ function OptRemapInputCtrl::onInputEvent( %this, %device, %action )
    
    RemapConfirmationText.setText("\"" @ %mapName @ "\" is already bound to \""
       @ %prevCmdName @ "\"! Do you wish to replace this mapping?");
+<<<<<<< HEAD
    RemapConfirmationYesButton.command = "ControlsMenu.redoMapping(" @ %device @ ", \"" @ %action @ "\", \"" @
+=======
+   RemapConfirmationYesButton.command = "redoMapping(" @ %device @ ", " @ %actionMap @ ", \"" @ %action @ "\", \"" @
+>>>>>>> unifiedRepo/Preview4_0
                               %cmd @ "\", " @ %prevMapIndex @ ", " @ %this.index @ "); Canvas.popDialog();";
    RemapConfirmationNoButton.command = "Canvas.popDialog();";
    
@@ -377,7 +545,11 @@ function OptRemapInputCtrl::onInputEvent( %this, %device, %action )
        %callback, "" );*/
 }
 
+<<<<<<< HEAD
 function ControlsMenu::findRemapCmdIndex( %this, %command )
+=======
+function findRemapCmdIndex( %command )
+>>>>>>> unifiedRepo/Preview4_0
 {
 	for ( %i = 0; %i < $RemapCount; %i++ )
 	{
@@ -388,10 +560,17 @@ function ControlsMenu::findRemapCmdIndex( %this, %command )
 }
 
 /// This unbinds actions beyond %count associated to the
+<<<<<<< HEAD
 /// particular moveMap %commmand.
 function ControlsMenu::unbindExtraActions( %this, %command, %count )
 {
    %temp = moveMap.getBinding( %command );
+=======
+/// particular actionMap %commmand.
+function unbindExtraActions( %command, %actionMap, %count )
+{
+   %temp = %actionMap.getBinding( %command );
+>>>>>>> unifiedRepo/Preview4_0
    if ( %temp $= "" )
       return;
 
@@ -401,6 +580,7 @@ function ControlsMenu::unbindExtraActions( %this, %command, %count )
       %device = getField( %temp, %i + 0 );
       %action = getField( %temp, %i + 1 );
       
+<<<<<<< HEAD
       moveMap.unbind( %device, %action );
    }
 }
@@ -415,4 +595,16 @@ function ControlsMenu::redoMapping( %this, %device, %action, %cmd, %oldIndex, %n
 	%remapList.setRowById( %newIndex, %this.buildFullMapString( %newIndex ) );
 	
 	%this.changeSettingsPage();
+=======
+      %actionMap.unbind( %device, %action );
+   }
+}
+
+function redoMapping( %device, %actionMap, %action, %cmd, %oldIndex, %newIndex )
+{
+	//%actionMap.bind( %device, %action, $RemapCmd[%newIndex] );
+	%actionMap.bind( %device, %action, %cmd );
+	
+	fillRemapList();
+>>>>>>> unifiedRepo/Preview4_0
 }

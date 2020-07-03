@@ -77,11 +77,20 @@ function JoinServerMenu::refreshSelectedServer( %this )
 }
 
 //----------------------------------------
+<<<<<<< HEAD
 function JoinServerMenu::exit(%this)
+=======
+function JoinServerMenu::backOut(%this)
+>>>>>>> unifiedRepo/Preview4_0
 {
    cancelServerQuery();
    
    Canvas.popDialog(JoinServerMenu);
+<<<<<<< HEAD
+=======
+   if(isObject(JoinServerMenu.returnGui) && JoinServerMenu.returnGui.isMethod("onReturnTo"))    
+      JoinServerMenu.returnGui.onReturnTo();  
+>>>>>>> unifiedRepo/Preview4_0
 }
 
 //----------------------------------------

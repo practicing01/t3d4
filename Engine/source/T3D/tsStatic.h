@@ -192,6 +192,9 @@ protected:
 
    Convex* mConvexList;
    Resource<TSShape> mShape;
+=======
+
+>>>>>>> unifiedRepo/Preview4_0
    StringTableEntry  mShapeName;
    U32               mShapeHash;
    Vector<S32> mCollisionDetails;
@@ -267,7 +270,10 @@ public:
 
    Resource<TSShape> getShape() const { return mShape; }
    StringTableEntry getShapeFileName() { return mShapeName; }
+<<<<<<< HEAD
 
+=======
+>>>>>>> unifiedRepo/Preview4_0
    void setShapeFileName(StringTableEntry shapeName) { mShapeName = shapeName; }
 
    TSShapeInstance* getShapeInstance() const { return mShapeInstance; }
@@ -280,9 +286,15 @@ public:
    bool hasAnim() { return mAmbientThread != NULL; }
 
    virtual void onInspect(GuiInspector*);
+<<<<<<< HEAD
 
    void updateMaterials();
 
+=======
+
+   void updateMaterials();
+
+>>>>>>> unifiedRepo/Preview4_0
 private:
    virtual void   onStaticModified(const char* slotName, const char* newValue = NULL);
 protected:
@@ -294,7 +306,10 @@ public:
    bool           mInvertGradientRange;
    Point2F        mGradientRangeUser;
    Point2F        mGradientRange;
+<<<<<<< HEAD
    bool isMusicbox;
+=======
+>>>>>>> unifiedRepo/Preview4_0
 private:
    void           set_special_typing();
    virtual void setSelectionFlags(U8 flags);

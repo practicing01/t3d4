@@ -94,6 +94,8 @@ ConsoleDocClass( SceneObject,
 );
 
 IMPLEMENT_CALLBACK(SceneObject, onInspectPostApply, void, (SceneObject* obj), (obj),"Generic callback for when an object is edited");
+=======
+>>>>>>> unifiedRepo/Preview4_0
 #ifdef TORQUE_TOOLS
 extern bool gEditingMission;
 #endif
@@ -387,7 +389,10 @@ void SceneObject::inspectPostApply()
 {
    if( isServerObject() )
       setMaskBits( MountedMask );
+<<<<<<< HEAD
    onInspectPostApply_callback(this);
+=======
+>>>>>>> unifiedRepo/Preview4_0
    Parent::inspectPostApply();
 }
 

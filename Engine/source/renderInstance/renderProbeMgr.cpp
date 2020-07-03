@@ -930,6 +930,17 @@ void RenderProbeMgr::bakeProbe(ReflectionProbe *probe)
    if (!renderWithProbes)
       RenderProbeMgr::smRenderReflectionProbes = false;
 
+<<<<<<< HEAD
+=======
+   GFXFormat reflectFormat;
+
+   if (clientProbe->mUseHDRCaptures)
+      reflectFormat = GFXFormatR16G16B16A16F;
+   else
+      reflectFormat = GFXFormatR8G8B8A8;
+   const GFXFormat oldRefFmt = REFLECTMGR->getReflectFormat();
+   REFLECTMGR->setReflectFormat(reflectFormat);
+>>>>>>> unifiedRepo/Preview4_0
    cubeRefl.updateReflection(reflParams);
 
    //Now, save out the maps
@@ -940,6 +951,7 @@ void RenderProbeMgr::bakeProbe(ReflectionProbe *probe)
       clientProbe->createClientResources();
 
       //Prep it with whatever resolution we've dictated for our bake
+<<<<<<< HEAD
       if (clientProbe->mUseHDRCaptures)
       {
          clientProbe->mIrridianceMap->mCubemap->initDynamic(resolution, GFXFormatR16G16B16A16F);
@@ -950,6 +962,10 @@ void RenderProbeMgr::bakeProbe(ReflectionProbe *probe)
          clientProbe->mIrridianceMap->mCubemap->initDynamic(resolution, GFXFormatR8G8B8A8);
          clientProbe->mPrefilterMap->mCubemap->initDynamic(resolution, GFXFormatR8G8B8A8);
       }
+=======
+      clientProbe->mIrridianceMap->mCubemap->initDynamic(resolution, reflectFormat);
+      clientProbe->mPrefilterMap->mCubemap->initDynamic(resolution, reflectFormat);
+>>>>>>> unifiedRepo/Preview4_0
 
       GFXTextureTargetRef renderTarget = GFX->allocRenderToTextureTarget(false);
 
@@ -980,6 +996,10 @@ void RenderProbeMgr::bakeProbe(ReflectionProbe *probe)
    probe->setMaskBits(-1);
 
    Con::warnf("RenderProbeMgr::bake() - Finished bake! Took %g milliseconds", diffTime);
+<<<<<<< HEAD
+=======
+   REFLECTMGR->setReflectFormat(oldRefFmt);
+>>>>>>> unifiedRepo/Preview4_0
 }
 
 void RenderProbeMgr::bakeProbes()

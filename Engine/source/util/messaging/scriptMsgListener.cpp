@@ -105,7 +105,6 @@ void ScriptMsgListener::onRemove()
 {
    onRemove_callback();
    //Con::executef(this, "onRemove");
-   unlinkNamespaces();
    
    Parent::onRemove();
 }

@@ -405,7 +405,9 @@ bool Trigger::onAdd()
 
    if (isServerObject())
       scriptOnAdd();
-      
+
+   testObjects();
+
    return true;
 }
 
@@ -441,7 +443,7 @@ void Trigger::onDeleteNotify( SimObject *obj )
          {
             mObjects.erase(i);
             if (mDataBlock)
-               mDataBlock->onLeaveTrigger_callback( this, pScene );
+               mDataBlock->onLeaveTrigger_callback( this, NULL );
             break;
          }
       }
@@ -517,6 +519,8 @@ void Trigger::setTransform(const MatrixF & mat)
 
       setMaskBits(TransformMask | ScaleMask);
    }
+
+   testObjects();
 }
 
 void Trigger::prepRenderImage( SceneRenderState *state )

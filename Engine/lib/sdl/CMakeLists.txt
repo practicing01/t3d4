@@ -1820,10 +1820,15 @@ if(SDL_SHARED)
   endif()
   set(_INSTALL_LIBS "SDL2" ${_INSTALL_LIBS})
   target_link_libraries(SDL2 PUBLIC ${EXTRA_LIBS} ${EXTRA_LDFLAGS})
+<<<<<<< HEAD
   if(MSVC AND NOT LIBC)
     if(MSVC_VERSION GREATER_EQUAL 1920)
       target_link_libraries(SDL2 PRIVATE optimized vcruntime)
     endif()
+=======
+  if(MSVC_VERSION GREATER_EQUAL 1920)
+    target_link_libraries(SDL2 PRIVATE optimized vcruntime)
+>>>>>>> unifiedRepo/Preview4_0
   endif()
   target_include_directories(SDL2 PUBLIC "$<BUILD_INTERFACE:${SDL2_SOURCE_DIR}/include>" $<INSTALL_INTERFACE:include/SDL2>)
   if (NOT ANDROID)

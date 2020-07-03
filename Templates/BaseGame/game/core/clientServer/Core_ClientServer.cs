@@ -64,9 +64,13 @@ function StartGame( %mission, %hostingType )
 {
    if( %mission $= "" )
    {
+<<<<<<< HEAD
       %id = CL_levelList.getSelectedId();
       %mission = getField(CL_levelList.getRowTextById(%id), 1);
       //error("Cannot start a level with no level selected!");
+=======
+      %mission = $selectedLevelFile;
+>>>>>>> unifiedRepo/Preview4_0
    }
 
    if (%hostingType !$= "")

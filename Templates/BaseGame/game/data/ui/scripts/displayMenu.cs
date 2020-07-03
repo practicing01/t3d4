@@ -39,6 +39,9 @@ function DisplayMenu::apply(%this)
       
    //Update the display settings now
    if (getWord( $pref::Video::Resolution, 2) == "")
+=======
+   if (getWord( $pref::Video::Resolution, 2) $= "")
+>>>>>>> unifiedRepo/Preview4_0
    {
       $pref::Video::Resolution = getWord( $pref::Video::Resolution, 0 ) SPC getWord( $pref::Video::Resolution, 1 );
    }

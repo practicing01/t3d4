@@ -20,9 +20,79 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
+<<<<<<< HEAD
 if ( isObject( ExampleMoveMap ) )
    ExampleMoveMap.delete();
 new ActionMap(ExampleMoveMap);
+=======
+$RemapName[$RemapCount] = "Forward";
+$RemapCmd[$RemapCount] = "moveforward";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "keyboard";
+$RemapDescription[$RemapCount] = "Forward Movement";
+$RemapCount++;
+$RemapName[$RemapCount] = "Backward";
+$RemapCmd[$RemapCount] = "movebackward";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "keyboard";
+$RemapDescription[$RemapCount] = "Backward Movement";
+$RemapCount++;
+$RemapName[$RemapCount] = "Strafe Left";
+$RemapCmd[$RemapCount] = "moveleft";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "keyboard";
+$RemapDescription[$RemapCount] = "Left Strafing Movement";
+$RemapCount++;
+$RemapName[$RemapCount] = "Strafe Right";
+$RemapCmd[$RemapCount] = "moveright";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "keyboard";
+$RemapDescription[$RemapCount] = "Right Strafing Movement";
+$RemapCount++;
+$RemapName[$RemapCount] = "Ascend";
+$RemapCmd[$RemapCount] = "moveup";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "keyboard";
+$RemapDescription[$RemapCount] = "Makes the camera ascend";
+$RemapCount++;
+$RemapName[$RemapCount] = "Descend";
+$RemapCmd[$RemapCount] = "movedown";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "keyboard";
+$RemapDescription[$RemapCount] = "Makes the camera descend";
+$RemapCount++;
+$RemapName[$RemapCount] = "Jump";
+$RemapCmd[$RemapCount] = "jump";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "keyboard";
+$RemapDescription[$RemapCount] = "Jump";
+$RemapCount++;
+
+$RemapName[$RemapCount] = "Ascend";
+$RemapCmd[$RemapCount] = "moveup";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "gamepad";
+$RemapDescription[$RemapCount] = "Makes the camera ascend";
+$RemapCount++;
+$RemapName[$RemapCount] = "Descend";
+$RemapCmd[$RemapCount] = "movedown";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "gamepad";
+$RemapDescription[$RemapCount] = "Makes the camera descend";
+$RemapCount++;
+$RemapName[$RemapCount] = "Jump";
+$RemapCmd[$RemapCount] = "jump";
+$RemapActionMap[$RemapCount] = "ExampleMoveMap";
+$RemapDevice[$RemapCount] = "gamepad";
+$RemapDescription[$RemapCount] = "Jump";
+$RemapCount++;
+
+if ( isObject( ExampleMoveMap ) )
+   ExampleMoveMap.delete();
+   
+new ActionMap(ExampleMoveMap);
+ExampleMoveMap.humanReadableName = "Example Movement";
+>>>>>>> unifiedRepo/Preview4_0
 
 //------------------------------------------------------------------------------
 // Non-remapable binds
@@ -61,6 +131,11 @@ ExampleMoveMap.bind( gamepad, thumblx, "D", "-0.23 0.23", gamePadMoveX );
 ExampleMoveMap.bind( gamepad, thumbly, "D", "-0.23 0.23", gamePadMoveY );
 
 ExampleMoveMap.bind( gamepad, btn_a, jump );
+<<<<<<< HEAD
+=======
+ExampleMoveMap.bind( gamepad, btn_x, moveup );
+ExampleMoveMap.bind( gamepad, btn_y, movedown );
+>>>>>>> unifiedRepo/Preview4_0
 ExampleMoveMap.bindCmd( gamepad, btn_back, "disconnect();", "" );
 
 //------------------------------------------------------------------------------

@@ -40,5 +40,9 @@ exec("./assimpImport.ed.gui");
 exec("./fieldTypes/assetDependencies.cs");
 exec("./fieldTypes/fieldTypes.cs");
 exec("./fieldTypes/listField.cs");
+<<<<<<< HEAD
+=======
+exec("./fieldTypes/range.cs");
+>>>>>>> unifiedRepo/Preview4_0
 exec("./fieldTypes/moduleDependencies.cs");
 exec("./fieldTypes/buttonField.cs");

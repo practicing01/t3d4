@@ -199,6 +199,38 @@ bool GFXGLTextureObject::copyToBmp(GBitmap * bmp)
 		   orig += srcBytesPerPixel;
 		   dest += dstBytesPerPixel;
 	   }
+=======
+   U32 mipLevels = getMipLevels();
+   if (mipLevels < 1) mipLevels = 1;//ensure we loop at least the once
+   for (U32 mip = 0; mip < mipLevels; mip++)
+   {
+      U32 srcPixelCount = bmp->getSurfaceSize(mip)/ srcBytesPerPixel;
+
+      U8* dest = bmp->getWritableBits(mip);
+      U8* orig = (U8*)mem.alloc(srcPixelCount * srcBytesPerPixel);
+
+      glGetTexImage(mBinding, mip, GFXGLTextureFormat[mFormat], GFXGLTextureType[mFormat], orig);
+
+      PROFILE_START(GFXGLTextureObject_copyToBmp_pixCopy);
+      if (mFormat == GFXFormatR16G16B16A16F)
+      {
+         dMemcpy(dest, orig, srcPixelCount * sizeof(U16) * 4);
+      }
+      else
+      {
+         for (int i = 0; i < srcPixelCount; ++i)
+         {
+            dest[0] = orig[0];
+            dest[1] = orig[1];
+            dest[2] = orig[2];
+            if (dstBytesPerPixel == 4)
+               dest[3] = orig[3];
+
+            orig += srcBytesPerPixel;
+            dest += dstBytesPerPixel;
+         }
+      }
+>>>>>>> unifiedRepo/Preview4_0
    }
    PROFILE_END();
 

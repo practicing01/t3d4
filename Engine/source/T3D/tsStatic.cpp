@@ -133,17 +133,26 @@ TSStatic::TSStatic()
    mPhysicsRep = NULL;
 
    mCollisionType = CollisionMesh;
+<<<<<<< HEAD
    mDecalType = VisibleMesh;
 
    mIgnoreZodiacs = true;
+=======
+   mDecalType = CollisionMesh;
+
+   mIgnoreZodiacs = false;
+>>>>>>> unifiedRepo/Preview4_0
    mHasGradients = false;
    mInvertGradientRange = false;
    mGradientRangeUser.set(0.0f, 180.0f);
 #ifdef TORQUE_AFX_ENABLED
    afxZodiacData::convertGradientRangeFromDegrees(mGradientRange, mGradientRangeUser);
 #endif
+<<<<<<< HEAD
    isMusicbox = false;
 
+=======
+>>>>>>> unifiedRepo/Preview4_0
    mAnimOffset = 0.0f;
    mAnimSpeed = 1.0f;
 
@@ -174,9 +183,12 @@ FRangeValidator speedValidator(0.0f, AnimSpeedMax);
 
 void TSStatic::initPersistFields()
 {
+<<<<<<< HEAD
    addField("isMusicbox", TypeBool, Offset(isMusicbox, TSStatic),
       "Does this object emmit level music?");
 
+=======
+>>>>>>> unifiedRepo/Preview4_0
    addFieldV("AnimOffset", TypeF32, Offset(mAnimOffset, TSStatic), &percentValidator,
       "Percent Animation Offset.");
 
@@ -279,6 +291,10 @@ void TSStatic::initPersistFields()
 bool TSStatic::_setShapeAsset(void* obj, const char* index, const char* data)
 {
    TSStatic* ts = static_cast<TSStatic*>(obj);// ->setFile(FileName(data));
+<<<<<<< HEAD
+=======
+
+>>>>>>> unifiedRepo/Preview4_0
    ts->mShapeAssetId = StringTable->insert(data);
 
    return ts->setShapeAsset(ts->mShapeAssetId);
@@ -286,18 +302,49 @@ bool TSStatic::_setShapeAsset(void* obj, const char* index, const char* data)
 
 bool TSStatic::_setShapeName(void* obj, const char* index, const char* data)
 {
+<<<<<<< HEAD
    TSStatic* ts = static_cast<TSStatic*>(obj);
    ts->mShapeName = data;
+=======
+   TSStatic* ts = static_cast<TSStatic*>(obj);// ->setFile(FileName(data));
+>>>>>>> unifiedRepo/Preview4_0
 
    StringTableEntry assetId = ShapeAsset::getAssetIdByFilename(StringTable->insert(data));
    if (assetId != StringTable->EmptyString())
    {
       //Special exception case. If we've defaulted to the 'no shape' mesh, don't save it out, we'll retain the original ids/paths so it doesn't break
       //the TSStatic
+<<<<<<< HEAD
       if (!ts->setShapeAsset(assetId))
          ts->mShapeAsset = "Core_Rendering:noShape";
    }
    return false;
+=======
+      if (ts->setShapeAsset(assetId))
+      {
+         if (assetId == StringTable->insert("Core_Rendering:noShape"))
+         {
+            ts->mShapeName = data;
+            ts->mShapeAssetId = StringTable->EmptyString();
+
+            return true;
+         }
+         else
+         {
+            ts->mShapeAssetId = assetId;
+            ts->mShapeName = StringTable->EmptyString();
+
+            return false;
+         }
+      }
+    }
+   else
+   {
+      ts->mShapeAsset = StringTable->EmptyString();
+   }
+
+   return true;
+>>>>>>> unifiedRepo/Preview4_0
 }
 
 bool TSStatic::_setFieldSkin(void* object, const char* index, const char* data)
@@ -402,7 +449,11 @@ bool TSStatic::setShapeAsset(const StringTableEntry shapeAssetId)
       //the TSStatic
       if (mShapeAsset.getAssetId() != StringTable->insert("Core_Rendering:noshape"))
       {
+<<<<<<< HEAD
          mShapeName = mShapeAsset->getShapeFilename();
+=======
+         mShapeName = StringTable->EmptyString();
+>>>>>>> unifiedRepo/Preview4_0
       }
 
       _createShape();
@@ -426,8 +477,12 @@ bool TSStatic::_createShape()
    SAFE_DELETE(mShapeInstance);
    mAmbientThread = NULL;
 
+<<<<<<< HEAD
    mShape = ResourceManager::get().load(mShapeName);
    if(!mShape && !mShapeAsset.isNull())
+=======
+   if(!mShapeAsset.isNull())
+>>>>>>> unifiedRepo/Preview4_0
    {
       //Special-case handling, usually because we set noShape
       mShape = mShapeAsset->getShapeResource();
@@ -490,9 +545,16 @@ bool TSStatic::_createShape()
       {
          StringTableEntry materialname = StringTable->insert(mShape->materialList->getMaterialName(i).c_str());
 
+<<<<<<< HEAD
             dSprintf(matFieldName, 128, "MaterialSlot%d", i);
             StringTableEntry matFld = StringTable->insert(matFieldName);
             setDataField(matFld, NULL, materialname);
+=======
+         dSprintf(matFieldName, 128, "MaterialSlot%d", i);
+         StringTableEntry matFld = StringTable->insert(matFieldName);
+
+         setDataField(matFld, NULL, materialname);
+>>>>>>> unifiedRepo/Preview4_0
       }
    }
 
@@ -966,6 +1028,7 @@ U32 TSStatic::packUpdate(NetConnection* con, U32 mask, BitStream* stream)
    {
       stream->writeString(mShapeAsset.getAssetId());
       stream->writeString(mShapeName);
+
       stream->write((U32)mDecalType);
 
       stream->writeFlag(mAllowPlayerStep);
@@ -1130,6 +1193,7 @@ void TSStatic::unpackUpdate(NetConnection* con, BitStream* stream)
    if (stream->readFlag())
    {
       cubeDescId = stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast);
+<<<<<<< HEAD
    }
 
    stream->read(&mOverrideColor);
@@ -1154,6 +1218,32 @@ void TSStatic::unpackUpdate(NetConnection* con, BitStream* stream)
       updateMaterials();
    }
 
+=======
+   }
+
+   stream->read(&mOverrideColor);
+
+   if (stream->readFlag())
+   {
+      mChangingMaterials.clear();
+      U32 materialCount = stream->readInt(16);
+
+      for (U32 i = 0; i < materialCount; i++)
+      {
+         matMap newMatMap;
+         newMatMap.slot = stream->readInt(16);
+         newMatMap.assetId = String(con->unpackNetStringHandleU(stream).getString());
+
+         //do the lookup, now
+         newMatMap.matAsset = AssetDatabase.acquireAsset<MaterialAsset>(newMatMap.assetId);
+
+         mChangingMaterials.push_back(newMatMap);
+      }
+
+      updateMaterials();
+   }
+
+>>>>>>> unifiedRepo/Preview4_0
    if (isProperlyAdded())
       _updateShouldTick();
    set_special_typing();
@@ -1213,7 +1303,11 @@ bool TSStatic::castRay(const Point3F& start, const Point3F& end, RayInfo* info)
 
 bool TSStatic::castRayRendered(const Point3F& start, const Point3F& end, RayInfo* info)
 {
+<<<<<<< HEAD
    if (!mShapeInstance || mDecalType == None)
+=======
+   if (!mShapeInstance)
+>>>>>>> unifiedRepo/Preview4_0
       return false;
 
    if (mDecalType == Bounds)
@@ -1383,7 +1477,11 @@ bool TSStatic::buildExportPolyList(ColladaUtils::ExportData* exportData, const B
          ColladaUtils::ExportData::detailLevel* curDetail = &meshData->meshDetailLevels.last();
 
          //Make sure we denote the size this detail level has
+<<<<<<< HEAD
          curDetail->size = getNextPow2(detail.size);
+=======
+         curDetail->size = detail.size;
+>>>>>>> unifiedRepo/Preview4_0
       }
    }
 
@@ -1847,6 +1945,7 @@ DefineEngineMethod(TSStatic, getModelFile, const char*, (), ,
 }
 
 void TSStatic::set_special_typing()
+<<<<<<< HEAD
 {
    if (mCollisionType == VisibleMesh || mCollisionType == CollisionMesh)
       mTypeMask |= InteriorLikeObjectType;
@@ -1867,6 +1966,28 @@ void TSStatic::onStaticModified(const char* slotName, const char* newValue)
    set_special_typing();
 }
 
+=======
+{
+   if (mCollisionType == VisibleMesh || mCollisionType == CollisionMesh)
+      mTypeMask |= InteriorLikeObjectType;
+   else
+      mTypeMask &= ~InteriorLikeObjectType;
+}
+
+void TSStatic::onStaticModified(const char* slotName, const char* newValue)
+{
+#ifdef TORQUE_AFX_ENABLED
+   if (slotName == afxZodiacData::GradientRangeSlot)
+   {
+      afxZodiacData::convertGradientRangeFromDegrees(mGradientRange, mGradientRangeUser);
+      return;
+   }
+#endif
+
+   set_special_typing();
+}
+
+>>>>>>> unifiedRepo/Preview4_0
 void TSStatic::setSelectionFlags(U8 flags)
 {
    Parent::setSelectionFlags(flags);
