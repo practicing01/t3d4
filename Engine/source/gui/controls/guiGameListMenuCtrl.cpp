@@ -25,6 +25,9 @@
 #include "console/consoleTypes.h"
 #include "console/engineAPI.h"
 #include "gfx/gfxDrawUtil.h"
+#include "gui/containers/guiScrollCtrl.h"
+#include "sim/actionMap.h"
+#include "core/strings/stringUnit.h"
 
 //-----------------------------------------------------------------------------
 // GuiGameListMenuCtrl
@@ -33,12 +36,10 @@
 GuiGameListMenuCtrl::GuiGameListMenuCtrl()
  : mSelected(NO_ROW),
    mDebugRender(false),
-<<<<<<< HEAD
-   mHighlighted(NO_ROW)
-=======
+
    mHighlighted(NO_ROW),
    mCallbackOnInputs(false)
->>>>>>> unifiedRepo/Preview4_0
+
 {
    VECTOR_SET_ASSOCIATION(mRows);
 

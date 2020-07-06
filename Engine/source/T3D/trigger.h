@@ -51,7 +51,7 @@ struct TriggerData: public GameBaseData {
    bool isClientSide;
 
    TriggerData();
-   
+
    DECLARE_CONOBJECT(TriggerData);
 
    DECLARE_CALLBACK( void, onEnterTrigger, ( Trigger* trigger, GameBase* obj ) );
@@ -90,7 +90,7 @@ class Trigger : public GameBase
    static const U32 CMD_SIZE = 1024;
 
   protected:
-   
+
    enum TriggerUpdateBits
    {
       TransformMask = Parent::NextFreeMask << 0,
@@ -123,6 +123,7 @@ class Trigger : public GameBase
 
    static void consoleInit();
    static void initPersistFields();
+   void testObjects();
    bool onAdd();
    void onRemove();
    void onDeleteNotify(SimObject*);
@@ -144,7 +145,7 @@ class Trigger : public GameBase
 
    virtual void potentialEnterObject(GameBase*);
    U32       getNumTriggeringObjects() const;
-   GameBase* getObject(const U32);   
+   GameBase* getObject(const U32);
    const Vector<GameBase*>& getObjects() const { return mObjects; }
 
    void renderObject( ObjectRenderInst *ri, SceneRenderState *state, BaseMatInstance *overrideMat );

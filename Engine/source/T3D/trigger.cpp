@@ -71,7 +71,7 @@ IMPLEMENT_CALLBACK( TriggerData, onTickTrigger, void, ( Trigger* trigger ), ( tr
    "want to do something with them in this callback.\n"
 
    "@param trigger the Trigger instance whose volume the object is inside\n"
-   
+
    "@see tickPeriodMS\n"
    "@see Trigger::getNumObjects()\n"
    "@see Trigger::getObject()\n");
@@ -266,7 +266,7 @@ ConsoleGetType( TypeTriggerPolyhedron )
             vecs[0].x, vecs[0].y, vecs[0].z,
             vecs[2].x, vecs[2].y, vecs[2].z,
             vecs[1].x, vecs[1].y, vecs[1].z);
-            
+
 
    return retBuf;
 }
@@ -387,6 +387,20 @@ bool Trigger::setTickCmd(void *object, const char *index, const char *data)
 {
    static_cast<Trigger*>(object)->setMaskBits(TickCmdMask);
    return true; // to update the actual field
+}
+
+//------------------------------------------------------------------------------
+
+void Trigger::testObjects()
+{
+   Vector<SceneObject*> foundobjs;
+   gServerContainer.findObjectList(getWorldBox(), 0xFFFFFFFF, &foundobjs);
+   for (S32 i = 0; i < foundobjs.size(); ++i)
+   {
+      GameBase* so = dynamic_cast<GameBase*>(foundobjs[i]);
+      if (so)
+         potentialEnterObject(so);
+   }
 }
 
 //--------------------------------------------------------------------------
@@ -531,7 +545,7 @@ void Trigger::prepRenderImage( SceneRenderState *state )
 
    ObjectRenderInst *ri = state->getRenderPass()->allocInst<ObjectRenderInst>();
    ri->renderDelegate.bind( this, &Trigger::renderObject );
-   ri->type = RenderPassManager::RIT_Editor;      
+   ri->type = RenderPassManager::RIT_Editor;
    ri->translucentSort = true;
    ri->defaultKey = 1;
    state->getRenderPass()->addInst( ri );
@@ -560,7 +574,7 @@ void Trigger::renderObject( ObjectRenderInst *ri,
    GFX->multWorld( mat );
 
    GFXDrawUtil *drawer = GFX->getDrawUtil();
-   
+
    drawer->drawPolyhedron( desc, mTriggerPolyhedron, ColorI( 255, 192, 0, 45 ) );
 
    // Render wireframe.
@@ -607,9 +621,9 @@ void Trigger::setTriggerPolyhedron(const Polyhedron& rPolyhedron)
    {
       PhysicsCollision *colShape = PHYSICSMGR->createCollision();
 
-      MatrixF colMat( true );      
+      MatrixF colMat( true );
       colMat.displace( Point3F( 0, 0, mObjBox.getExtents().z * 0.5f * mObjScale.z ) );
-      
+
       colShape->addBox( mObjBox.getExtents() * 0.5f * mObjScale, colMat );
       //MatrixF colMat( true );
       //colMat.scale( mObjScale );
@@ -697,7 +711,7 @@ void Trigger::processTick(const Move* move)
             GameBase* remove = mObjects[i];
             mObjects.erase(i);
             clearNotify(remove);
-            
+
             if (!mLeaveCommand.isEmpty())
             {
                String command = String("%obj = ") + remove->getIdString() + ";" + mLeaveCommand;

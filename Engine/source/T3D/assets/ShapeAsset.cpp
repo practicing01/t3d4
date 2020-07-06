@@ -79,7 +79,6 @@ ConsoleSetType(TypeShapeAssetPtr)
    // Warn.
    Con::warnf("(TypeAssetId) - Cannot set multiple args to a single asset.");
 }
-<<<<<<< HEAD
 
 //-----------------------------------------------------------------------------
 
@@ -102,30 +101,6 @@ ConsoleSetType(TypeShapeAssetId)
       // Fetch asset Id.
       StringTableEntry* assetId = (StringTableEntry*)(dptr);
 
-=======
-
-//-----------------------------------------------------------------------------
-
-ConsoleType(assetIdString, TypeShapeAssetId, String, ASSET_ID_FIELD_PREFIX)
-
-ConsoleGetType(TypeShapeAssetId)
-{
-   // Fetch asset Id.
-   return *((const char**)(dptr));
-}
-
-ConsoleSetType(TypeShapeAssetId)
-{
-   // Was a single argument specified?
-   if (argc == 1)
-   {
-      // Yes, so fetch field value.
-      const char* pFieldValue = argv[0];
-
-      // Fetch asset Id.
-      StringTableEntry* assetId = (StringTableEntry*)(dptr);
-
->>>>>>> unifiedRepo/Preview4_0
       // Update asset value.
       *assetId = StringTable->insert(pFieldValue);
 
@@ -355,21 +330,6 @@ bool ShapeAsset::getAssetByFilename(StringTableEntry fileName, AssetPtr<ShapeAss
       Con::warnf("ShapeAsset::getAssetByFilename - Attempted to in-place import a shapefile(%s) that had no associated asset", fileName);
 #endif
 
-<<<<<<< HEAD
-      ConsoleValueRef result = Con::executef("importLooseFile", fileName, true);
-
-      if (result.getBoolValue())
-      {
-         StringTableEntry resultingAssetId = StringTable->insert(Con::getVariable("$importedLooseFileAsset"));
-
-         if (resultingAssetId != StringTable->EmptyString())
-         {
-            shapeAsset->setAssetId(resultingAssetId);
-
-            if (!shapeAsset->isNull())
-               return true;
-         }
-=======
       AssetImporter* autoAssetImporter;
       if (!Sim::findObject("autoAssetImporter", autoAssetImporter))
       {
@@ -385,7 +345,6 @@ bool ShapeAsset::getAssetByFilename(StringTableEntry fileName, AssetPtr<ShapeAss
 
          if (!shapeAsset->isNull())
             return true;
->>>>>>> unifiedRepo/Preview4_0
       }
 
       //Didn't work, so have us fall back to a placeholder asset
@@ -419,19 +378,6 @@ StringTableEntry ShapeAsset::getAssetIdByFilename(StringTableEntry fileName)
       Con::warnf("ShapeAsset::getAssetByFilename - Attempted to in-place import a shapefile(%s) that had no associated asset", fileName);
 #endif
 
-<<<<<<< HEAD
-      ConsoleValueRef result = Con::executef("importLooseFile", fileName, true);
-
-      if (result.getBoolValue())
-      {
-         StringTableEntry resultingAssetId = StringTable->insert(Con::getVariable("$importedLooseFileAsset"));
-
-         if (resultingAssetId != StringTable->EmptyString())
-         {
-            shapeAssetId = resultingAssetId;
-            return shapeAssetId;
-         }
-=======
       AssetImporter* autoAssetImporter;
       if (!Sim::findObject("autoAssetImporter", autoAssetImporter))
       {
@@ -445,7 +391,6 @@ StringTableEntry ShapeAsset::getAssetIdByFilename(StringTableEntry fileName)
       {
          shapeAssetId = resultingAssetId;
          return shapeAssetId;
->>>>>>> unifiedRepo/Preview4_0
       }
 
       //Didn't work, so have us fall back to a placeholder asset
@@ -577,7 +522,7 @@ GuiControl* GuiInspectorTypeShapeAssetPtr::constructEditControl()
 
    // Change filespec
    char szBuffer[512];
-   dSprintf(szBuffer, sizeof(szBuffer), "AssetBrowser.showDialog(\"ShapeAsset\", \"AssetBrowser.changeAsset\", %s, %s);", 
+   dSprintf(szBuffer, sizeof(szBuffer), "AssetBrowser.showDialog(\"ShapeAsset\", \"AssetBrowser.changeAsset\", %s, %s);",
       mInspector->getInspectObject()->getIdString(), mCaption);
    mBrowseButton->setField("Command", szBuffer);
 

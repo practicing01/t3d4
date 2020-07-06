@@ -36,6 +36,7 @@
 #include "materials/shaderData.h"
 
 #include "gfx/gfxTextureManager.h"
+#include "scene/reflectionManager.h"
 
 #include "postFx/postEffect.h"
 #include "T3D/lighting/reflectionProbe.h"
@@ -48,7 +49,7 @@
 
 IMPLEMENT_CONOBJECT(RenderProbeMgr);
 
-ConsoleDocClass( RenderProbeMgr, 
+ConsoleDocClass( RenderProbeMgr,
    "@brief A render bin which uses object callbacks for rendering.\n\n"
    "This render bin gathers object render instances and calls its delegate "
    "method to perform rendering.  It is used infrequently for specialized "
@@ -155,7 +156,7 @@ void ProbeShaderConstants::init(GFXShader* shader)
       mShader = shader;
       mShader->getReloadSignal().notify(this, &ProbeShaderConstants::_onShaderReload);
    }
-   
+
    //Reflection Probes
    mProbePositionSC = shader->getShaderConstHandle(ShaderGenVars::probePosition);
    mProbeRefPosSC = shader->getShaderConstHandle(ShaderGenVars::probeRefPos);
@@ -199,7 +200,7 @@ RenderProbeMgr::RenderProbeMgr()
 : RenderBinManager(RenderPassManager::RIT_Probes, 1.0f, 1.0f),
    mLastShader(nullptr),
    mLastConstants(nullptr),
-	mProbesDirty(false),
+    mProbesDirty(false),
    mHasSkylight(false),
    mSkylightCubemapIdx(-1),
    mCubeMapCount(0),
@@ -286,7 +287,7 @@ bool RenderProbeMgr::onAdd()
    {
       Con::errorf("RenderProbeMgr::onAdd: Failed to load BRDF Texture");
       return false;
-   } 
+   }
 
    return true;
 }
@@ -420,7 +421,7 @@ PostEffect* RenderProbeMgr::getProbeArrayEffect()
 
 void RenderProbeMgr::updateProbes()
 {
-	mProbesDirty = true;
+    mProbesDirty = true;
 }
 
 void RenderProbeMgr::_setupStaticParameters()
@@ -481,7 +482,7 @@ void RenderProbeMgr::_setupStaticParameters()
       refBoxMinData[mEffectiveProbeCount] = Point4F(bbMin.x, bbMin.y, bbMin.z, 0);
       refBoxMaxData[mEffectiveProbeCount] = Point4F(bbMax.x, bbMax.y, bbMax.z, 0);
 
-      probeConfigData[mEffectiveProbeCount] = Point4F(curEntry.mProbeShapeType, 
+      probeConfigData[mEffectiveProbeCount] = Point4F(curEntry.mProbeShapeType,
          curEntry.mRadius,
          curEntry.mAtten,
          curEntry.mCubemapIndex);
@@ -748,7 +749,7 @@ void RenderProbeMgr::render( SceneRenderState *state )
       return;
 
    if (mProbesDirty)
-	   _setupStaticParameters();
+       _setupStaticParameters();
 
    // Early out if nothing to draw.
    if (!RenderProbeMgr::smRenderReflectionProbes || (!state->isDiffusePass() && !state->isReflectPass()) || (mEffectiveProbeCount == 0 && mSkylightCubemapIdx == -1))
@@ -793,14 +794,14 @@ void RenderProbeMgr::render( SceneRenderState *state )
       {
          mProbeArrayEffect->setShaderMacro("USE_SSAO_MASK");
          mProbeArrayEffect->setTexture(6, pTexObj);
-         
+
       }
    }
    else
    {
-      mProbeArrayEffect->setTexture(6, GFXTexHandle(NULL)); 
+      mProbeArrayEffect->setTexture(6, GFXTexHandle(NULL));
    }
-   
+
    mProbeArrayEffect->setTexture(3, mBRDFTexture);
    mProbeArrayEffect->setCubemapArrayTexture(4, mPrefilterArray);
    mProbeArrayEffect->setCubemapArrayTexture(5, mIrradianceArray);
@@ -930,8 +931,6 @@ void RenderProbeMgr::bakeProbe(ReflectionProbe *probe)
    if (!renderWithProbes)
       RenderProbeMgr::smRenderReflectionProbes = false;
 
-<<<<<<< HEAD
-=======
    GFXFormat reflectFormat;
 
    if (clientProbe->mUseHDRCaptures)
@@ -940,7 +939,6 @@ void RenderProbeMgr::bakeProbe(ReflectionProbe *probe)
       reflectFormat = GFXFormatR8G8B8A8;
    const GFXFormat oldRefFmt = REFLECTMGR->getReflectFormat();
    REFLECTMGR->setReflectFormat(reflectFormat);
->>>>>>> unifiedRepo/Preview4_0
    cubeRefl.updateReflection(reflParams);
 
    //Now, save out the maps
@@ -951,21 +949,8 @@ void RenderProbeMgr::bakeProbe(ReflectionProbe *probe)
       clientProbe->createClientResources();
 
       //Prep it with whatever resolution we've dictated for our bake
-<<<<<<< HEAD
-      if (clientProbe->mUseHDRCaptures)
-      {
-         clientProbe->mIrridianceMap->mCubemap->initDynamic(resolution, GFXFormatR16G16B16A16F);
-         clientProbe->mPrefilterMap->mCubemap->initDynamic(resolution, GFXFormatR16G16B16A16F);
-      }
-      else
-      {
-         clientProbe->mIrridianceMap->mCubemap->initDynamic(resolution, GFXFormatR8G8B8A8);
-         clientProbe->mPrefilterMap->mCubemap->initDynamic(resolution, GFXFormatR8G8B8A8);
-      }
-=======
       clientProbe->mIrridianceMap->mCubemap->initDynamic(resolution, reflectFormat);
       clientProbe->mPrefilterMap->mCubemap->initDynamic(resolution, reflectFormat);
->>>>>>> unifiedRepo/Preview4_0
 
       GFXTextureTargetRef renderTarget = GFX->allocRenderToTextureTarget(false);
 
@@ -996,10 +981,7 @@ void RenderProbeMgr::bakeProbe(ReflectionProbe *probe)
    probe->setMaskBits(-1);
 
    Con::warnf("RenderProbeMgr::bake() - Finished bake! Took %g milliseconds", diffTime);
-<<<<<<< HEAD
-=======
    REFLECTMGR->setReflectFormat(oldRefFmt);
->>>>>>> unifiedRepo/Preview4_0
 }
 
 void RenderProbeMgr::bakeProbes()

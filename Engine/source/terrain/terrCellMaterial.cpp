@@ -59,11 +59,7 @@ Vector<String> _initSamplerNames()
    {
       samplerNames.push_back(avar("$normalMap%d",i));
       samplerNames.push_back(avar("$detailMap%d",i));
-<<<<<<< HEAD
-      samplerNames.push_back(avar("$macroMap%d", i));
-=======
       //samplerNames.push_back(avar("$macroMap%d", i));
->>>>>>> unifiedRepo/Preview4_0
       samplerNames.push_back(avar("$compositeMap%d", i));
    }   
 

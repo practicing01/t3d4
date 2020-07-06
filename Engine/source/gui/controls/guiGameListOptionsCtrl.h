@@ -41,7 +41,16 @@ protected:
       S32                        mSelectedOption;  ///< Index into mOptions pointing at the selected option
       bool                       mWrapOptions;     ///< Determines if options should "wrap around" at the ends
 
-      Row() : mSelectedOption(0), mWrapOptions(false)
+      enum Mode
+      {
+         Default = 0,
+         OptionsList,
+         Keybind
+      };
+
+      Mode mMode;
+
+      Row() : mSelectedOption(0), mWrapOptions(false), mMode(Mode::Default)
       {
          VECTOR_SET_ASSOCIATION( mOptions );
       }
@@ -118,7 +127,7 @@ public:
 
    DECLARE_CONOBJECT(GuiGameListOptionsCtrl);
    DECLARE_DESCRIPTION( "A control for showing pages of options that are gamepad friendly." );
-   
+
    virtual bool onAdd();
 
    /// Initializes fields accessible through the console.

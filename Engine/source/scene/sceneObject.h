@@ -69,7 +69,7 @@
 
 #ifndef _ASSET_PTR_H_
 #include "assets/assetPtr.h"
-#endif 
+#endif
 #ifndef GAME_OBJECT_ASSET_H
 #include "T3D/assets/GameObjectAsset.h"
 #endif
@@ -124,7 +124,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       friend class SceneCullingState; // _getZoneRefHead
       friend class SceneObjectLink; // mSceneObjectLinks
 
-      enum 
+      enum
       {
          /// Maximum number of zones that an object can concurrently be assigned to.
          MaxObjectZones = 128,
@@ -132,7 +132,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
          NumMountPoints = 32,
          NumMountPointBits = 5,
       };
-      
+
       /// Networking dirty mask.
       enum SceneObjectMasks
       {
@@ -142,9 +142,9 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
          MountedMask       = BIT( 3 ),
          NextFreeMask      = BIT( 4 )
       };
-      
+
       /// Bit-flags stored in mObjectFlags.
-      /// If a derived class adds more flags they must overload 
+      /// If a derived class adds more flags they must overload
       /// getObjectFlagMax to ensure those flags will be transmitted over
       /// the network.
       /// @see getObjectFlagMax
@@ -281,7 +281,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       /// @note This method will return the zoning list as is.  In case the zoning state
       ///   of the object is dirty, the list contents may be outdated.
       ZoneRef* _getZoneRefHead() const { return mZoneRefHead; }
-      
+
       /// @}
 
       /// @name Transform and Collision Members
@@ -562,9 +562,9 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       /// @param   box        Box bounding volume
       /// @param   sphere     Sphere bounding volume
       ///
-      virtual bool buildPolyList(   PolyListContext context, 
-                                    AbstractPolyList* polyList, 
-                                    const Box3F& box, 
+      virtual bool buildPolyList(   PolyListContext context,
+                                    AbstractPolyList* polyList,
+                                    const Box3F& box,
                                     const SphereF& sphere ) { return false; }
 
       /// Builds a list of polygons which intersect a bounding volume for exporting
@@ -611,7 +611,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       /// The default implementation will return true if the point is within the object's
       /// bounding box.  Subclasses should implement more precise tests.
       virtual bool containsPoint( const Point3F &point );
-      
+
       virtual bool collideBox( const Point3F& start, const Point3F& end, RayInfo* info );
 
       /// Returns the position of the object.
@@ -625,26 +625,26 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       /// Sets the position of the object
       void setPosition ( const Point3F& pos );
 
-      /// Gets the velocity of the object.   
+      /// Gets the velocity of the object.
       virtual Point3F getVelocity() const { return Point3F::Zero; }
 
       /// Sets the velocity of the object
-      /// @param  v  Velocity   
+      /// @param  v  Velocity
       virtual void setVelocity( const Point3F &v ) {}
 
       /// Applies an impulse force to this object
       /// @param   pos   Position where impulse came from in world space
-      /// @param   vec   Velocity vector (Impulse force F = m * v)   
+      /// @param   vec   Velocity vector (Impulse force F = m * v)
       virtual void applyImpulse( const Point3F &pos, const VectorF &vec ) {}
 
       /// Applies a radial impulse to the object
       /// using the impulse origin and force.
       /// @param origin Point of origin of the radial impulse.
       /// @param radius The radius of the impulse area.
-      /// @param magnitude The strength of the impulse.   
+      /// @param magnitude The strength of the impulse.
       virtual void applyRadialImpulse( const Point3F &origin, F32 radius, F32 magnitude ) {}
 
-      /// Returns the distance from this object to a point   
+      /// Returns the distance from this object to a point
       /// @param pnt World space point to measure to
       virtual F32 distanceTo( const Point3F &pnt ) const;
 
@@ -655,7 +655,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
 
       /// ex: Mount B to A at A's node N
       /// A.mountObject( B, N )
-      /// 
+      ///
       /// @param   obj   Object to mount
       /// @param   node  Mount node ID
       virtual void mountObject( SceneObject *obj, S32 node, const MatrixF &xfm = MatrixF::Identity );
@@ -665,7 +665,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       virtual void unmountObject( SceneObject *obj );
 
       /// Unmount this object from it's mount
-      virtual void unmount();    
+      virtual void unmount();
 
       /// Callback when this object is mounted.
       /// @param obj Object we are mounting to.
@@ -719,17 +719,17 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       void resolveMountPID();
 
       /// @}
-      
+
       /// @name Sound
       /// @{
-      
+
       /// Return whether the object's collision shape is blocking sound.
       bool isOccludingSound() const { return mObjectFlags.test( SoundOccluderFlag ); }
-      
+
       /// Return the ambient sound space active inside the volume of this object or NULL if the object does
       /// not have its own ambient space.
       virtual SFXAmbience* getSoundAmbience() const { return NULL; }
-      
+
       /// @}
 
       /// @name Rendering
@@ -753,7 +753,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       /// Returns the nth zone containing this object.
       U32 getCurrZone(const U32 index) const;
 
-      /// @}   
+      /// @}
 
       /// @name Global Bounds
       /// @{
@@ -798,9 +798,6 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       static bool _setGameObject(void* object, const char* index, const char* data);
 
       DECLARE_CONOBJECT( SceneObject );
-	  DECLARE_CALLBACK(void, onInspectPostApply, (SceneObject* obj));
-=======
->>>>>>> unifiedRepo/Preview4_0
    private:
 
       SceneObject( const SceneObject& ); ///< @deprecated disallowed
@@ -831,7 +828,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
    /// TGE uses the term "mount" in a quirky, staticky way relating to its limited use to have
    /// riders and guns mounted on a vehicle (and similar)
    /// I did not alter that code at all (yet) and did not want to keep its terminology for other reasons
-   /// I decided to support a hierarchy of scene objects and dubbed the operations 
+   /// I decided to support a hierarchy of scene objects and dubbed the operations
    /// attaching and removing child SceneObjects
   protected:
 
@@ -840,7 +837,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
    struct AttachInfo {
       SceneObject* firstChild;  ///< Objects mounted on this object
       SimObjectPtr<SceneObject>  parent; ///< Object this object is mounted on.
-      SceneObject* nextSibling;        ///< Link to next child object of this object's parent 
+      SceneObject* nextSibling;        ///< Link to next child object of this object's parent
       MatrixF      objToParent;   ///< this obects transformation in the parent object's space
       MatrixF      RenderobjToParent;   ///< this obects Render Offset transformation to the parent object
    } mGraph;
@@ -857,9 +854,9 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
    protected:
       U8 mSelectionFlags;
    public:
-      enum { 
-         SELECTED      = BIT(0), 
-         PRE_SELECTED  = BIT(1), 
+      enum {
+         SELECTED      = BIT(0),
+         PRE_SELECTED  = BIT(1),
       };
       virtual void setSelectionFlags(U8 flags) { mSelectionFlags = flags; }
       U8 getSelectionFlags() const { return mSelectionFlags; }
@@ -871,20 +868,20 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       // AFX CODE BLOCK (is-camera) >>
 // PATHSHAPE
 // Added for dynamic attaching
-	void UpdateXformChange(const MatrixF &mat);
+    void UpdateXformChange(const MatrixF &mat);
       /// this is useful for setting NULL parent (making SceneObject a root object)
    virtual bool attachToParent(SceneObject *parent, MatrixF *atThisOffset = NULL, S32 node=0);
    SceneObject *getParent() { return mGraph.parent; };
 
-   
+
    /// attach a subobject, but do not alter the subObject's present absolute position or orientation
-   bool attachChild(SceneObject* subObject);   
+   bool attachChild(SceneObject* subObject);
    /// attach a subobject, at the specified offset expressed in our local coordinate space
-   bool attachChildAt(SceneObject* subObject, MatrixF atThisTransform, S32 node);   
+   bool attachChildAt(SceneObject* subObject, MatrixF atThisTransform, S32 node);
 
    /// attach a subobject, at the specified position expressed in our local coordinate space
-   bool attachChildAt(SceneObject* subObject, Point3F atThisPosition);   
-   
+   bool attachChildAt(SceneObject* subObject, Point3F atThisPosition);
+
    /// how many child SceneObjects are (directly) attached to this one?
    U32 getNumChildren() const;
 
@@ -892,8 +889,8 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
    U32 getNumProgeny() const;
 
    /// returns the (direct) child SceneObject at the given index (0 <= index <= getNumChildren() - 1)
-   SceneObject *getChild(U32 index) const; 
-   
+   SceneObject *getChild(U32 index) const;
+
    /// is this SceneObject a child (directly or indirectly) of the given object?
    bool isChildOf(SceneObject *);
 
@@ -904,46 +901,46 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
    //void localMove(const Point3F &delta);
    /// as localMove(const Point3F &delta), with different signature
    //void localMove(F32 x, F32 y, F32 z);
-   
+
    /// move the object in world space, without altering place in scene hierarchy
    void move(const Point3F &delta);
-   
+
    // Does checks for children objects and updates their positions
    void PerformUpdatesForChildren(MatrixF mat);
-   
+
    // Move the RenderTransform
    void moveRender(const Point3F &delta);
    //Calculate how much to adjust the render transform - Called by the child objects
    void updateRenderChangesByParent();
    //Calculate how much to adjust the transform - Called by the parent object
-   void updateChildTransform(); 
-   /// as move(const Point3F &delta), with different signature   
+   void updateChildTransform();
+   /// as move(const Point3F &delta), with different signature
    void move(F32 x, F32 y, F32 z);
 
    /// returns the transform relative to parent SceneObject transform (or world transform if no parent)
    //const MatrixF& getLocalTransform() const;
    /// returns the position within parent SceneObject space (or world space if no parent)
    //Point3F getLocalPosition() const;
-   
-   
-//   virtual void onParentScaleChanged();   
+
+
+//   virtual void onParentScaleChanged();
 //   virtual void onParentTransformChanged();
-      
-   /// Sets the Object -> Parent transform.  If no parent SceneObject, this is equivalent to 
+
+   /// Sets the Object -> Parent transform.  If no parent SceneObject, this is equivalent to
    ///  setTransform()
    ///
    /// @param   mat   New transform matrix
    //virtual void setLocalTransform(const MatrixF & mat);
 
 
-   /// Called to let instance specific code happen 
-   virtual void onLostParent(SceneObject *oldParent);   
-   /// Called to let instance specific code happen 
-   virtual void onNewParent(SceneObject *newParent);   
+   /// Called to let instance specific code happen
+   virtual void onLostParent(SceneObject *oldParent);
+   /// Called to let instance specific code happen
+   virtual void onNewParent(SceneObject *newParent);
    /// notification that a direct child object has been attached
-   virtual void onNewChild(SceneObject *subObject);   
+   virtual void onNewChild(SceneObject *subObject);
    /// notification that a direct child object has been detached
-   virtual void onLostChild(SceneObject *subObject);   
+   virtual void onLostChild(SceneObject *subObject);
 // PATHSHAPE END
 };
 

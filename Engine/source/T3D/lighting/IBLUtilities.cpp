@@ -74,7 +74,7 @@ namespace IBLUtilities
          irrConsts->setSafe(irrFaceSC, (S32)i);
          GFX->setActiveRenderTarget(renderTarget);
          GFX->clear(GFXClearTarget, LinearColorF::BLACK, 1.0f, 0);
-         GFX->drawPrimitive(GFXTriangleList, 0, 3);
+         GFX->drawPrimitive(GFXTriangleList, 0, 1);
          renderTarget->resolve();
       }
 
@@ -138,8 +138,6 @@ namespace IBLUtilities
       GFXShaderConstHandle* prefilterMipSizeSC = prefilterShader->getShaderConstHandle("$mipSize");
       GFXShaderConstHandle* prefilterResolutionSC = prefilterShader->getShaderConstHandle("$resolution");
 
-<<<<<<< HEAD
-=======
       GFXStateBlockDesc desc;
       desc.zEnable = false;
       desc.samplersDefined = true;
@@ -154,7 +152,6 @@ namespace IBLUtilities
       preStateBlock = GFX->createStateBlock(desc);
       GFX->setStateBlock(preStateBlock);
 
->>>>>>> unifiedRepo/Preview4_0
       GFX->pushActiveRenderTarget();
       GFX->setShader(prefilterShader);
       GFX->setShaderConstBuffer(prefilterConsts);
@@ -180,11 +177,7 @@ namespace IBLUtilities
             GFX->setActiveRenderTarget(renderTarget, false);//we set the viewport ourselves
             GFX->setViewport(RectI(0, 0, size, size));
             GFX->clear(GFXClearTarget, LinearColorF::BLACK, 1.0f, 0);
-<<<<<<< HEAD
-            GFX->drawPrimitive(GFXTriangleList, 0, 3);
-=======
             GFX->drawPrimitive(GFXTriangleList, 0, 1);
->>>>>>> unifiedRepo/Preview4_0
             renderTarget->resolve();
          }
       }
@@ -211,7 +204,7 @@ namespace IBLUtilities
       {
          Con::errorf("IBLUtilities::GenerateAndSavePrefilterMap - Failed to properly save out the baked irradiance!");
       }
-   }   
+   }
 
    void bakeReflection(String outputPath, S32 resolution)
    {
@@ -348,7 +341,7 @@ namespace IBLUtilities
 
          if (!Platform::isFile(fileName))
          {
-            validCubemap = false; //if we didn't save right, just 
+            validCubemap = false; //if we didn't save right, just
             Con::errorf("Failed to properly save out the skylight baked cubemap!");
          }
 

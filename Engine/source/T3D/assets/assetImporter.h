@@ -520,11 +520,9 @@ class AssetImporter : public SimObject
    /// A list of AssetImportObjects that are to be imported. These are unmodified by anything in the importing session, and are only used for resetting purposes;
    /// </summary>
    Vector<Torque::Path> originalImportingAssets;
-=======
    /// A list of file paths that are to be imported. These are only used for resetting purposes;
    /// </summary>
    Vector<Torque::Path> originalImportingFiles;
->>>>>>> unifiedRepo/Preview4_0
 
    /// <summary>
    /// The Id of the module the assets are to be imported into

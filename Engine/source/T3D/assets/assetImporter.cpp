@@ -12,7 +12,7 @@
 #include "ts/collada/colladaShapeLoader.h"
 
 #include "ts/assimp/assimpShapeLoader.h"
-#include <ts/tsShapeConstruct.h>
+#include "ts/tsShapeConstruct.h"
 
 
 ConsoleDocClass(AssetImportConfig,
@@ -375,10 +375,7 @@ AssetImportObject* AssetImporter::addImportingFile(Torque::Path filePath)
 
    AssetImportObject* newAssetItem = addImportingAsset(assetType, filePath, nullptr, "");
 
-   originalImportingAssets.push_back(filePath);
-=======
    originalImportingFiles.push_back(filePath);
->>>>>>> unifiedRepo/Preview4_0
 
    return newAssetItem;
 }
@@ -500,13 +497,10 @@ ModuleDefinition* AssetImporter::getModuleFromPath(Torque::Path filePath)
 
 String AssetImporter::parseImageSuffixes(String assetName, String* suffixType)
 {
-<<<<<<< HEAD
-=======
    //Here, we loop over our different suffix lists progressively.
    //This lets us walk through a list of suffixes in the Import Config, such as DiffuseTypeSuffixes
    //And then iterate over the delinated list of items within it to look for a match.
    //If we don't find a match, we then increment our list switch index and scan through the next list.
->>>>>>> unifiedRepo/Preview4_0
    U32 suffixTypeIdx = 0;
    while (suffixTypeIdx < 6)
    {
@@ -584,15 +578,9 @@ void AssetImporter::resetImportSession()
    importingAssets.clear();
    activityLog.clear();
 
-<<<<<<< HEAD
-   for (U32 i = 0; i < originalImportingAssets.size(); i++)
-   {
-      addImportingFile(originalImportingAssets[i]);
-=======
    for (U32 i = 0; i < originalImportingFiles.size(); i++)
    {
       addImportingFile(originalImportingFiles[i]);
->>>>>>> unifiedRepo/Preview4_0
    }
 }
 
@@ -1053,15 +1041,15 @@ void AssetImporter::processImageAsset(AssetImportObject* assetItem)
 
          suffixType = "Albedo";
       }
-      
+
       if (suffixType.isNotEmpty())
       {
          assetItem->imageSuffixType = suffixType;
 
-         //otherwise, if we have some sort of suffix, we'll want to figure out if we've already got an existing material, and should append to it  
+         //otherwise, if we have some sort of suffix, we'll want to figure out if we've already got an existing material, and should append to it
          if (activeImportConfig.PopulateMaterialMaps)
          {
-            
+
          }
       }
    }
@@ -1102,7 +1090,7 @@ void AssetImporter::processMaterialAsset(AssetImportObject* assetItem)
    {
       //If we're trying to populate the rest of our material maps, we need to go looking
    }
-   
+
    assetItem->processed = true;
 }
 
@@ -1540,8 +1528,6 @@ StringTableEntry AssetImporter::autoImportFile(Torque::Path filePath)
       Con::printf(activityLog[i].c_str());
    }
 #endif
-<<<<<<< HEAD
-=======
 
    if (hasIssues)
    {
@@ -1552,7 +1538,6 @@ StringTableEntry AssetImporter::autoImportFile(Torque::Path filePath)
       String assetId = targetModuleId + ":" + assetItem->assetName;
       return StringTable->insert(assetId.c_str());
    }
->>>>>>> unifiedRepo/Preview4_0
 }
 
 void AssetImporter::importAssets(AssetImportObject* assetItem)
@@ -1585,10 +1570,6 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
          /*else if (importingAssets[i]->assetType == String("ShapeAnimationAsset"))
             assetPath = ShapeAnimationAsset::importAsset(importingAssets[i]);*/
 
-<<<<<<< HEAD
-         //If we got a valid filepath back from the import action, then we know we're good to go and we can go ahead and register the asset!
-         if (!assetPath.isEmpty() && !isReimport)
-=======
          if (assetPath.isEmpty())
          {
             dSprintf(importLogBuffer, sizeof(importLogBuffer), "AssetImporter::importAssets - Import attempt of %s failed, so skipping asset.", importingAssets[i]->assetName.c_str());
@@ -1599,7 +1580,6 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
 
          //If we got a valid filepath back from the import action, then we know we're good to go and we can go ahead and register the asset!
          if (!isReimport)
->>>>>>> unifiedRepo/Preview4_0
          {
             bool registerSuccess = AssetDatabase.addDeclaredAsset(moduleDef, assetPath.getFullPath().c_str());
 
@@ -1609,8 +1589,6 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
                activityLog.push_back(importLogBuffer);
             }
          }
-<<<<<<< HEAD
-=======
          else
          {
             String assetId = importingAssets[i]->moduleName + ":" + importingAssets[i]->assetName;
@@ -1622,7 +1600,6 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
                activityLog.push_back(importLogBuffer);
             }
          }
->>>>>>> unifiedRepo/Preview4_0
 
          //recurse if needed
          importAssets(importingAssets[i]);
@@ -1650,10 +1627,6 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
          /*else if (childItem->assetType == String("ShapeAnimationAsset"))
             assetPath = ShapeAnimationAsset::importAsset(childItem);*/
 
-<<<<<<< HEAD
-         //If we got a valid filepath back from the import action, then we know we're good to go and we can go ahead and register the asset!
-         if (!assetPath.isEmpty() && !isReimport)
-=======
          if (assetPath.isEmpty())
          {
             dSprintf(importLogBuffer, sizeof(importLogBuffer), "AssetImporter::importAssets - Import attempt of %s failed, so skipping asset.", childItem->assetName.c_str());
@@ -1664,7 +1637,6 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
 
          //If we got a valid filepath back from the import action, then we know we're good to go and we can go ahead and register the asset!
          if (!isReimport)
->>>>>>> unifiedRepo/Preview4_0
          {
             bool registerSuccess = AssetDatabase.addDeclaredAsset(moduleDef, assetPath.getFullPath().c_str());
 
@@ -1674,8 +1646,6 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
                activityLog.push_back(importLogBuffer);
             }
          }
-<<<<<<< HEAD
-=======
          else
          {
             String assetId = childItem->moduleName + ":" + childItem->assetName;
@@ -1687,7 +1657,6 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
                activityLog.push_back(importLogBuffer);
             }
          }
->>>>>>> unifiedRepo/Preview4_0
 
          //recurse if needed
          importAssets(childItem);
@@ -1719,7 +1688,7 @@ Torque::Path AssetImporter::importImageAsset(AssetImportObject* assetItem)
 
    Platform::makeFullPathName(originalPath.c_str(), qualifiedFromFile, sizeof(qualifiedFromFile));
    Platform::makeFullPathName(assetPath.c_str(), qualifiedToFile, sizeof(qualifiedToFile));
-   
+
    newAsset->setAssetName(assetName);
    newAsset->setImageFileName(imageFileName.c_str());
    newAsset->setDataField(StringTable->insert("originalFilePath"), nullptr, qualifiedFromFile);
@@ -1910,28 +1879,19 @@ Torque::Path AssetImporter::importShapeAsset(AssetImportObject* assetItem)
    String constructorPath = targetPath + "/" + assetItem->filePath.getFileName() + ".cs";
    String tamlPath = targetPath + "/" + assetName + ".asset.taml";
    String originalPath = assetItem->filePath.getFullPath().c_str();
-<<<<<<< HEAD
-
-   char qualifiedFromFile[2048];
-   char qualifiedToFile[2048];
-=======
    String originalConstructorPath = assetItem->filePath.getPath() + assetItem->filePath.getFileName() + ".cs";
 
    char qualifiedFromFile[2048];
    char qualifiedToFile[2048];
    char qualifiedFromCSFile[2048];
    char qualifiedToCSFile[2048];
->>>>>>> unifiedRepo/Preview4_0
 
    Platform::makeFullPathName(originalPath.c_str(), qualifiedFromFile, sizeof(qualifiedFromFile));
    Platform::makeFullPathName(assetPath.c_str(), qualifiedToFile, sizeof(qualifiedToFile));
 
-<<<<<<< HEAD
-=======
    Platform::makeFullPathName(originalConstructorPath.c_str(), qualifiedFromCSFile, sizeof(qualifiedFromCSFile));
    Platform::makeFullPathName(constructorPath.c_str(), qualifiedToCSFile, sizeof(qualifiedToCSFile));
 
->>>>>>> unifiedRepo/Preview4_0
    newAsset->setAssetName(assetName);
    newAsset->setShapeFile(shapeFileName.c_str());
    newAsset->setDataField(StringTable->insert("originalFilePath"), nullptr, qualifiedFromFile);
@@ -1952,7 +1912,7 @@ Torque::Path AssetImporter::importShapeAsset(AssetImportObject* assetItem)
 
          char dependencyFieldDef[512];
          dSprintf(dependencyFieldDef, 512, "@Asset=%s:%s", targetModuleId.c_str(), childItem->assetName.c_str());
-  
+
          newAsset->setDataField(StringTable->insert(dependencyFieldName), nullptr, dependencyFieldDef);
 
          dependencySlotId++;
@@ -1981,128 +1941,13 @@ Torque::Path AssetImporter::importShapeAsset(AssetImportObject* assetItem)
       return "";
    }
 
-<<<<<<< HEAD
-=======
    bool makeNewConstructor = true;
->>>>>>> unifiedRepo/Preview4_0
    if (!isReimport)
    {
       bool isInPlace = !dStrcmp(qualifiedFromFile, qualifiedToFile);
 
       if (!isInPlace && !dPathCopy(qualifiedFromFile, qualifiedToFile, !isReimport))
       {
-<<<<<<< HEAD
-         dSprintf(importLogBuffer, sizeof(importLogBuffer), "Error! Unable to copy file %s", assetItem->filePath.getFullPath().c_str());
-         activityLog.push_back(importLogBuffer);
-         return "";
-      }
-   }
-
-   //find/create shape constructor
-   TSShapeConstructor* constructor = TSShapeConstructor::findShapeConstructor(Torque::Path(qualifiedToFile).getFullPath());
-   if (constructor == nullptr)
-   {
-      constructor = new TSShapeConstructor(qualifiedToFile);
-
-      String constructorName = assetItem->filePath.getFileName() + "_" + assetItem->filePath.getExtension().substr(0, 3);
-      constructorName.replace("-", "_");
-      constructorName.replace(".", "_");
-      constructorName = Sim::getUniqueName(constructorName.c_str());
-      constructor->registerObject(constructorName.c_str());
-   }
-
-   //now we write the import config logic into the constructor itself to ensure we load like we wanted it to
-   String neverImportMats;
-
-   if (activeImportConfig.IgnoreMaterials.isNotEmpty())
-   {
-      U32 ignoredMatNamesCount = StringUnit::getUnitCount(activeImportConfig.IgnoreMaterials, ",;");
-      for (U32 i = 0; i < ignoredMatNamesCount;  i++)
-      {
-         if (i == 0)
-            neverImportMats = StringUnit::getUnit(activeImportConfig.IgnoreMaterials, i, ",;");
-         else
-            neverImportMats += String("\t") + StringUnit::getUnit(activeImportConfig.IgnoreMaterials, i, ",;");
-      }
-   }
-
-   if (activeImportConfig.DoUpAxisOverride)
-   {
-      S32 upAxis;
-      if (activeImportConfig.UpAxisOverride.compare("X_AXIS") == 0)
-      {
-         upAxis = domUpAxisType::UPAXISTYPE_X_UP;
-      }
-      else if(activeImportConfig.UpAxisOverride.compare("Y_AXIS") == 0)
-      {
-         upAxis = domUpAxisType::UPAXISTYPE_Y_UP;
-      }
-      else if(activeImportConfig.UpAxisOverride.compare("Z_AXIS") == 0)
-      {
-         upAxis = domUpAxisType::UPAXISTYPE_Z_UP;
-      }
-      constructor->mOptions.upAxis = (domUpAxisType)upAxis;
-   }
-
-   if (activeImportConfig.DoScaleOverride)
-      constructor->mOptions.unit = activeImportConfig.ScaleOverride;
-   else
-      constructor->mOptions.unit = -1;
-
-   enum eAnimTimingType
-   {
-      FrameCount = 0,
-      Seconds = 1,
-      Milliseconds = 1000
-   };
-
-   S32 lodType;
-   if (activeImportConfig.LODType.compare("TrailingNumber") == 0)
-      lodType = ColladaUtils::ImportOptions::eLodType::TrailingNumber;
-   else if (activeImportConfig.LODType.compare("SingleSize") == 0)
-      lodType = ColladaUtils::ImportOptions::eLodType::SingleSize;
-   else if (activeImportConfig.LODType.compare("DetectDTS") == 0)
-      lodType = ColladaUtils::ImportOptions::eLodType::DetectDTS;
-   constructor->mOptions.lodType = (ColladaUtils::ImportOptions::eLodType)lodType;
-
-   constructor->mOptions.singleDetailSize = activeImportConfig.convertLeftHanded;
-   constructor->mOptions.alwaysImport = activeImportConfig.ImportedNodes;
-   constructor->mOptions.neverImport = activeImportConfig.IgnoreNodes;
-   constructor->mOptions.alwaysImportMesh = activeImportConfig.ImportMeshes;
-   constructor->mOptions.neverImportMesh = activeImportConfig.IgnoreMeshes;
-   constructor->mOptions.ignoreNodeScale = activeImportConfig.IgnoreNodeScale;
-   constructor->mOptions.adjustCenter = activeImportConfig.AdjustCenter;
-   constructor->mOptions.adjustFloor = activeImportConfig.AdjustFloor;
-
-   constructor->mOptions.convertLeftHanded = activeImportConfig.convertLeftHanded;
-   constructor->mOptions.calcTangentSpace = activeImportConfig.calcTangentSpace;
-   constructor->mOptions.genUVCoords = activeImportConfig.genUVCoords;
-   constructor->mOptions.flipUVCoords = activeImportConfig.flipUVCoords;
-   constructor->mOptions.findInstances = activeImportConfig.findInstances;
-   constructor->mOptions.limitBoneWeights = activeImportConfig.limitBoneWeights;
-   constructor->mOptions.joinIdenticalVerts = activeImportConfig.JoinIdenticalVerts;
-   constructor->mOptions.reverseWindingOrder = activeImportConfig.reverseWindingOrder;
-   constructor->mOptions.invertNormals = activeImportConfig.invertNormals;
-   constructor->mOptions.removeRedundantMats = activeImportConfig.removeRedundantMats;
-
-   S32 animTimingType;
-   if (activeImportConfig.animTiming.compare("FrameCount") == 0)
-      animTimingType = ColladaUtils::ImportOptions::eAnimTimingType::FrameCount;
-   else if (activeImportConfig.animTiming.compare("Seconds") == 0)
-      animTimingType = ColladaUtils::ImportOptions::eAnimTimingType::Seconds;
-   else if (activeImportConfig.animTiming.compare("Milliseconds") == 0)
-      animTimingType = ColladaUtils::ImportOptions::eAnimTimingType::Milliseconds;
-   constructor->mOptions.animTiming = (ColladaUtils::ImportOptions::eAnimTimingType)animTimingType;
-
-   constructor->mOptions.animFPS = activeImportConfig.animFPS;
-
-   constructor->mOptions.neverImportMat = neverImportMats;
-
-   if (!constructor->save(constructorPath.c_str()))
-   {
-      dSprintf(importLogBuffer, sizeof(importLogBuffer), "Error! Failed to save shape constructor file to %s", constructorPath.c_str());
-      activityLog.push_back(importLogBuffer);
-=======
          dSprintf(importLogBuffer, sizeof(importLogBuffer), "Error! Unable to copy file %s", qualifiedFromFile);
          activityLog.push_back(importLogBuffer);
          return "";
@@ -2242,7 +2087,6 @@ Torque::Path AssetImporter::importShapeAsset(AssetImportObject* assetItem)
          dSprintf(importLogBuffer, sizeof(importLogBuffer), "Finished creating shape constructor file to %s", constructorPath.c_str());
          activityLog.push_back(importLogBuffer);
       }
->>>>>>> unifiedRepo/Preview4_0
    }
 
    return tamlPath;
