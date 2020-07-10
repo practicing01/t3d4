@@ -151,6 +151,13 @@ public:
    /// Returns the current quality scale... see above.
    static F32 getQualityScale() { return smDensityScale; }
 
+   /// Sets the global ground cover fade scalar which controls
+   /// the percentage of the maximum designed distance to display cover.
+   /// Returns the actual value set.
+   static F32 setFadeScale(F32 scale) { return smFadeScale = mClampF(scale, 0.0f, 1.0f); }
+
+   /// Returns the current fade scale... see above.
+   static F32 getFadeScale() { return smFadeScale; }
 protected:      
 
    enum MaskBits 

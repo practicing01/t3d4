@@ -459,6 +459,11 @@ endif()
 
 if(TORQUE_SDL)
     addPathRec("${srcDir}/windowManager/sdl")
+
+    if(NOT TORQUE_OPENGL)
+        set(BLACKLIST "sdlPlatformGL.cpp")
+    endif()
+
     addPathRec("${srcDir}/platformSDL")
     set(BLACKLIST "")
 

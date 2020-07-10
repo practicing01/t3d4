@@ -24,6 +24,7 @@
 #define _GuiGameListMenuCtrl_H_
 
 #include "gui/core/guiControl.h"
+#include "gui/controls/guiBitmapCtrl.h"
 
 class GuiGameListMenuProfile;
 

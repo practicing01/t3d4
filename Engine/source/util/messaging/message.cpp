@@ -100,7 +100,6 @@ bool Message::onAdd()
    if(! Parent::onAdd())
       return false;
 
-   linkNamespaces();
    onAdd_callback();
    //Con::executef(this, "onAdd");
    return true;

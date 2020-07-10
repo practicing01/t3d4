@@ -316,7 +316,7 @@ U32 GroundCoverCell::renderShapes(  const TSRenderState &rdata,
       camVector = inst.point - state->getDiffuseCameraPosition();
       dist = getMax( camVector.len(), 0.01f );
 
-      worldMat.set( EulerF(0, 0, inst.rotation), inst.point );
+      worldMat.set( EulerF(inst.normal.x, inst.normal.y, inst.rotation), inst.point );
 
       // TSShapeInstance::render() uses the 
       // world matrix for the RenderInst.
