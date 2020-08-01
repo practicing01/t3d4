@@ -20,11 +20,6 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-<<<<<<< HEAD
-if ( isObject( ExampleMoveMap ) )
-   ExampleMoveMap.delete();
-new ActionMap(ExampleMoveMap);
-=======
 $RemapName[$RemapCount] = "Forward";
 $RemapCmd[$RemapCount] = "moveforward";
 $RemapActionMap[$RemapCount] = "ExampleMoveMap";
@@ -92,7 +87,6 @@ if ( isObject( ExampleMoveMap ) )
    
 new ActionMap(ExampleMoveMap);
 ExampleMoveMap.humanReadableName = "Example Movement";
->>>>>>> unifiedRepo/Preview4_0
 
 //------------------------------------------------------------------------------
 // Non-remapable binds
@@ -103,7 +97,16 @@ ExampleMoveMap.bind(keyboard, "ctrl h", hideHUDs);
 
 ExampleMoveMap.bind(keyboard, "alt p", doScreenShotHudless);
 
-ExampleMoveMap.bindCmd(keyboard, "escape", "", "disconnect();");
+function openPauseMenu(%val)
+{
+   if(%val && PauseMenu.isAwake() == false)
+   {
+      echo("PUSHING PAUSE MENU");
+      Canvas.pushDialog(PauseMenu);
+   }
+}
+
+ExampleMoveMap.bind(keyboard, "escape", openPauseMenu);
 
 //------------------------------------------------------------------------------
 // Movement Keys
@@ -125,24 +128,21 @@ ExampleMoveMap.bind( keyboard, space, jump );
 ExampleMoveMap.bind( mouse, xaxis, yaw );
 ExampleMoveMap.bind( mouse, yaxis, pitch );
 
-ExampleMoveMap.bind( gamepad, thumbrx, "D", "-0.23 0.23", gamepadYaw );
-ExampleMoveMap.bind( gamepad, thumbry, "D", "-0.23 0.23", gamepadPitch );
-ExampleMoveMap.bind( gamepad, thumblx, "D", "-0.23 0.23", gamePadMoveX );
-ExampleMoveMap.bind( gamepad, thumbly, "D", "-0.23 0.23", gamePadMoveY );
+ExampleMoveMap.bind( gamepad, rxaxis, "D", "-0.23 0.23", gamepadYaw );
+ExampleMoveMap.bind( gamepad, ryaxis, "D", "-0.23 0.23", gamepadPitch );
+ExampleMoveMap.bind( gamepad, xaxis, "D", "-0.23 0.23", gamePadMoveX );
+ExampleMoveMap.bind( gamepad, yaxis, "D", "-0.23 0.23", gamePadMoveY );
 
 ExampleMoveMap.bind( gamepad, btn_a, jump );
-<<<<<<< HEAD
-=======
 ExampleMoveMap.bind( gamepad, btn_x, moveup );
 ExampleMoveMap.bind( gamepad, btn_y, movedown );
->>>>>>> unifiedRepo/Preview4_0
-ExampleMoveMap.bindCmd( gamepad, btn_back, "disconnect();", "" );
+ExampleMoveMap.bindCmd( gamepad, btn_start, "Canvas.pushDialog(PauseMenu);", "" );
 
 //------------------------------------------------------------------------------
 // Misc.
 //------------------------------------------------------------------------------
 GlobalActionMap.bind(keyboard, "tilde", toggleConsole);
 GlobalActionMap.bindCmd(keyboard, "alt k", "cls();","");
-GlobalActionMap.bindCmd(keyboard, "alt enter", "", "Canvas.attemptFullscreenToggle();");
+GlobalActionMap.bindCmd(keyboard, "alt enter", "", "Canvas.toggleFullscreen();");
 GlobalActionMap.bindCmd(keyboard, "F1", "", "contextHelp();");
 ExampleMoveMap.bindCmd(keyboard, "n", "toggleNetGraph();", "");

@@ -4,7 +4,26 @@ function JoinServerMenu::onWake()
    // Double check the status. Tried setting this the control
    // inactive to start with, but that didn't seem to work.
    JoinServerJoinBtn.setActive(JS_serverList.rowCount() > 0);
+   
+   JoinServerButtonHolder.setActive();
+   
+   JoinServerMenuInputHandler.setFirstResponder();
 }   
+
+function JoinServerButtonHolder::onWake(%this)
+{
+   %this-->joinButton.set("btn_start", "Return", "Join", "JoinServerMenu.join();");
+   %this-->backButton.set("btn_b", "Escape", "Back", "JoinServerMenu.backOut();");
+   %this-->refreshButton.set("btn_y", "R", "Refresh", "JoinServerMenu.refresh();");
+   %this-->queryLANButton.set("btn_a", "Q", "Query LAN", "JoinServerMenu.queryLan();");
+   %this-->queryInternetButton.set("btn_x", "E", "Query Internet", "JoinServerMenu.query();");
+}
+
+function JoinServerMenuInputHandler::onInputEvent(%this, %device, %action, %state)
+{
+   if(%state)
+      $activeMenuButtonContainer.processInputs(%device, %action);
+}
 
 //----------------------------------------
 function JoinServerMenu::query(%this)
@@ -77,20 +96,13 @@ function JoinServerMenu::refreshSelectedServer( %this )
 }
 
 //----------------------------------------
-<<<<<<< HEAD
-function JoinServerMenu::exit(%this)
-=======
 function JoinServerMenu::backOut(%this)
->>>>>>> unifiedRepo/Preview4_0
 {
    cancelServerQuery();
    
    Canvas.popDialog(JoinServerMenu);
-<<<<<<< HEAD
-=======
    if(isObject(JoinServerMenu.returnGui) && JoinServerMenu.returnGui.isMethod("onReturnTo"))    
       JoinServerMenu.returnGui.onReturnTo();  
->>>>>>> unifiedRepo/Preview4_0
 }
 
 //----------------------------------------

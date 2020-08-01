@@ -38,37 +38,14 @@ new SFXProfile(messageBoxBeep)
    preload     = true;
 };*/
 
-
-
-
 //---------------------------------------------------------------------------------------------
 // messageCallback
 // Calls a callback passed to a message box.
 //---------------------------------------------------------------------------------------------
 function messageCallback(%dlg, %callback)
 {
-<<<<<<< HEAD
    Canvas.popDialog(%dlg);
    eval(%callback);
-}
-
-//The # in the function passed replaced with the output 
-//of the preset menu.
-function IOCallback(%dlg, %callback)
-{
-   %id = IODropdownMenu.getSelected();
-   %text = IODropdownMenu.getTextById(%id);
-   %callback = strreplace(%callback, "#", %text); 
-   eval(%callback);
-   
-   Canvas.popDialog(%dlg);
-=======
-   MessageBoxDlg.originalMenubuttonContainer.add(GamepadButtonsGui);
-   MessageBoxDlg.originalMenubuttonContainer.refresh();
-   
-   Canvas.popDialog(%dlg);
-   eval(%callback);
->>>>>>> unifiedRepo/Preview4_0
 }
 
 //---------------------------------------------------------------------------------------------
@@ -105,71 +82,64 @@ function MBSetText(%text, %frame, %msg)
    //sfxPlayOnce( messageBoxBeep );
 }
 
+function MessageBoxCtrl::onWake(%this)
+{
+}
+
 //---------------------------------------------------------------------------------------------
 // Various message box display functions. Each one takes a window title, a message, and a
 // callback for each button.
 //---------------------------------------------------------------------------------------------
 
-<<<<<<< HEAD
-function MessageBoxOK(%title, %message, %callback)
-{
-   MBOKFrame.text = %title;
-   Canvas.pushDialog(MessageBoxOKDlg);
-   MBSetText(MBOKText, MBOKFrame, %message);
-   MessageBoxOKDlg.callback = %callback;
-=======
 //MessageBoxOK("Test", "This is a test message box", "echo(\"Uhhhhhawhat?\"");
 function MessageBoxOK(%title, %message, %callback)
 {
    Canvas.pushDialog(MessageBoxDlg);
    MessageBoxTitleText.text = %title;
    
-   MessageBoxDlg.originalMenubuttonContainer = GamepadButtonsGui.getParent();
+   MessageBoxOCButtonHolder.hidden = true;
+   MessageBoxYNCButtonHolder.hidden = true;
+   MessageBoxOKButtonHolder.hidden = false;
    
-   MessageBoxButtonHolder.add(GamepadButtonsGui);
-   GamepadButtonsGui.clearButtons();
-   GamepadButtonsGui.setButton(7, "A", "", "OK", "MessageCallback(MessageBoxDlg,MessageBoxDlg.callback);");
-   GamepadButtonsGui.refreshButtons();
+   MessageBoxOKButtonHolder-->OKButton.set("btn_a", "Return", "OK", "MessageCallback(MessageBoxDlg,MessageBoxDlg.callback);");
+   
+   MessageBoxCtrl.originalMenuInputContainer = $activeMenuButtonContainer;
+   MessageBoxOKButtonHolder.setActive();
    
    MBSetText(MessageBoxText, MessageBoxCtrl, %message);
    MessageBoxDlg.callback = %callback;
->>>>>>> unifiedRepo/Preview4_0
 }
 
 function MessageBoxOKDlg::onSleep( %this )
 {
    %this.callback = "";
+   MessageBoxCtrl.originalMenuInputContainer.setActive();
 }
 
 function MessageBoxOKCancel(%title, %message, %callback, %cancelCallback)
 {
-<<<<<<< HEAD
-   MBOKCancelFrame.text = %title;
-   Canvas.pushDialog(MessageBoxOKCancelDlg);
-   MBSetText(MBOKCancelText, MBOKCancelFrame, %message);
-   MessageBoxOKCancelDlg.callback = %callback;
-   MessageBoxOKCancelDlg.cancelCallback = %cancelCallback;
-=======
    Canvas.pushDialog(MessageBoxDlg);
    MessageBoxTitleText.text = %title;
    
-   MessageBoxDlg.originalMenubuttonContainer = GamepadButtonsGui.getParent();
+   MessageBoxOCButtonHolder.hidden = false;
+   MessageBoxYNCButtonHolder.hidden = true;
+   MessageBoxOKButtonHolder.hidden = true;
    
-   MessageBoxButtonHolder.add(GamepadButtonsGui);
-   GamepadButtonsGui.clearButtons();
-   GamepadButtonsGui.setButton(5, "A", "", "OK", "MessageCallback(MessageBoxDlg,MessageBoxDlg.callback);");
-   GamepadButtonsGui.setButton(6, "B", "", "Cancel", "MessageCallback(MessageBoxDlg,MessageBoxDlg.cancelCallback);");
-   GamepadButtonsGui.refreshButtons();
+   MessageBoxOCButtonHolder-->OKButton.set("btn_a", "Return", "OK", "MessageCallback(MessageBoxDlg,MessageBoxDlg.callback);");
+   MessageBoxOCButtonHolder-->CancelButton.set("btn_b", "Escape", "Cancel", "MessageCallback(MessageBoxDlg,MessageBoxDlg.cancelCallback);");
+
+   MessageBoxCtrl.originalMenuInputContainer = $activeMenuButtonContainer;
+   MessageBoxOCButtonHolder.setActive();
    
    MBSetText(MessageBoxText, MessageBoxCtrl, %message);
    MessageBoxDlg.callback = %callback;
    MessageBoxDlg.cancelCallback = %cancelCallback;
->>>>>>> unifiedRepo/Preview4_0
 }
 
 function MessageBoxOKCancelDlg::onSleep( %this )
 {
    %this.callback = "";
+   MessageBoxCtrl.originalMenuInputContainer.setActive();
 }
 
 function MessageBoxOKCancelDetails(%title, %message, %details, %callback, %cancelCallback)
@@ -241,62 +211,44 @@ function MBOKCancelDetailsToggleInfoFrame()
 function MessageBoxOKCancelDetailsDlg::onSleep( %this )
 {
    %this.callback = "";
+   MessageBoxCtrl.originalMenuInputContainer.setActive();
 }
 
 function MessageBoxYesNo(%title, %message, %yesCallback, %noCallback)
 {
-<<<<<<< HEAD
-   MBYesNoFrame.text = %title;
-   Canvas.pushDialog(MessageBoxYesNoDlg);
-   MBSetText(MBYesNoText, MBYesNoFrame, %message);
-   MessageBoxYesNoDlg.yesCallBack = %yesCallback;
-   MessageBoxYesNoDlg.noCallback = %noCallBack;
-=======
    Canvas.pushDialog(MessageBoxDlg);
    MessageBoxTitleText.text = %title;
    
-   MessageBoxDlg.originalMenubuttonContainer = GamepadButtonsGui.getParent();
+   MessageBoxOCButtonHolder.hidden = false;
+   MessageBoxYNCButtonHolder.hidden = true;
+   MessageBoxOKButtonHolder.hidden = true;
    
-   MessageBoxButtonHolder.add(GamepadButtonsGui);
-   GamepadButtonsGui.clearButtons();
-   GamepadButtonsGui.setButton(5, "A", "", "Yes", "MessageCallback(MessageBoxDlg,MessageBoxDlg.yesCallBack);");
-   GamepadButtonsGui.setButton(6, "B", "", "No", "MessageCallback(MessageBoxDlg,MessageBoxDlg.noCallback);");
-   GamepadButtonsGui.refreshButtons();
+   MessageBoxOCButtonHolder-->OKButton.set("btn_a", "Return", "Yes", "MessageCallback(MessageBoxDlg,MessageBoxDlg.yesCallBack);");
+   MessageBoxOCButtonHolder-->CancelButton.set("btn_b", "Escape", "No", "MessageCallback(MessageBoxDlg,MessageBoxDlg.noCallback);");
+   
+   MessageBoxCtrl.originalMenuInputContainer = $activeMenuButtonContainer;
+   MessageBoxOCButtonHolder.setActive();
    
    MBSetText(MessageBoxText, MessageBoxCtrl, %message);
    MessageBoxDlg.yesCallBack = %yesCallback;
    MessageBoxDlg.noCallback = %noCallback;
->>>>>>> unifiedRepo/Preview4_0
 }
 
 function MessageBoxYesNoCancel(%title, %message, %yesCallback, %noCallback, %cancelCallback)
 {
-<<<<<<< HEAD
-   MBYesNoCancelFrame.text = %title;
-   MessageBoxYesNoDlg.profile = "GuiOverlayProfile";
-   Canvas.pushDialog(MessageBoxYesNoCancelDlg);
-   MBSetText(MBYesNoCancelText, MBYesNoCancelFrame, %message);
-   MessageBoxYesNoCancelDlg.yesCallBack = %yesCallback;
-   MessageBoxYesNoCancelDlg.noCallback = %noCallBack;
-   MessageBoxYesNoCancelDlg.cancelCallback = %cancelCallback;
-}
-
-function MessageBoxYesNoDlg::onSleep( %this )
-{
-   %this.yesCallback = "";
-   %this.noCallback = "";
-=======
    Canvas.pushDialog(MessageBoxDlg);
    MessageBoxTitleText.text = %title;
    
-   MessageBoxDlg.originalMenubuttonContainer = GamepadButtonsGui.getParent();
+   MessageBoxOCButtonHolder.hidden = true;
+   MessageBoxYNCButtonHolder.hidden = false;
+   MessageBoxOKButtonHolder.hidden = true;
    
-   MessageBoxButtonHolder.add(GamepadButtonsGui);
-   GamepadButtonsGui.clearButtons();
-   GamepadButtonsGui.setButton(5, "A", "", "Yes", "MessageCallback(MessageBoxDlg,MessageBoxDlg.yesCallBack);");
-   GamepadButtonsGui.setButton(6, "B", "", "No", "MessageCallback(MessageBoxDlg,MessageBoxDlg.noCallback);");
-   GamepadButtonsGui.setButton(7, "Back", "", "Cancel", "MessageCallback(MessageBoxDlg,MessageBoxDlg.cancelCallback);");
-   GamepadButtonsGui.refreshButtons();
+   MessageBoxYNCButtonHolder-->yesButton.set("btn_a", "Return", "Yes", "MessageCallback(MessageBoxDlg,MessageBoxDlg.yesCallBack);");
+   MessageBoxYNCButtonHolder-->noButton.set("btn_x", "backspace", "No", "MessageCallback(MessageBoxDlg,MessageBoxDlg.noCallback);");
+   MessageBoxYNCButtonHolder-->cancelButton.set("btn_b", "Escape", "No", "MessageCallback(MessageBoxDlg,MessageBoxDlg.cancelCallback);");
+   
+   MessageBoxCtrl.originalMenuInputContainer = $activeMenuButtonContainer;
+   MessageBoxYNCButtonHolder.setActive();
    
    MBSetText(MessageBoxText, MessageBoxCtrl, %message);
    MessageBoxDlg.yesCallBack = %yesCallback;
@@ -311,7 +263,7 @@ function MessageBoxDlg::onSleep( %this )
    %this.yesCallback = "";
    %this.noCallback = "";
    %this.cancelCallback = "";
->>>>>>> unifiedRepo/Preview4_0
+   MessageBoxCtrl.originalMenuInputContainer.setActive();
 }
 
 //---------------------------------------------------------------------------------------------
@@ -320,29 +272,19 @@ function MessageBoxDlg::onSleep( %this )
 //---------------------------------------------------------------------------------------------
 function MessagePopup(%title, %message, %delay)
 {
-<<<<<<< HEAD
-   // Currently two lines max.
-   MessagePopFrame.setText(%title);
-   Canvas.pushDialog(MessagePopupDlg);
-   MBSetText(MessagePopText, MessagePopFrame, %message);
-=======
    Canvas.pushDialog(MessageBoxDlg);
    MessageBoxTitleText.text = %title;
    MBSetText(MessageBoxText, MessageBoxCtrl, %message);
 
->>>>>>> unifiedRepo/Preview4_0
    if (%delay !$= "")
       schedule(%delay, 0, CloseMessagePopup);
 }
 
-<<<<<<< HEAD
-=======
 function CloseMessagePopup()
 {
    Canvas.popDialog(MessageBoxDlg);
 }
 
->>>>>>> unifiedRepo/Preview4_0
 //---------------------------------------------------------------------------------------------
 // IODropdown
 // By passing in a simgroup or simset, the user will be able to choose a child of that group
@@ -376,11 +318,6 @@ function IODropdownDlg::onSleep( %this )
    IODropdownMenu.clear();
 }
 
-<<<<<<< HEAD
-function CloseMessagePopup()
-{
-   Canvas.popDialog(MessagePopupDlg);
-=======
 //The # in the function passed replaced with the output 
 //of the preset menu.
 function IOCallback(%dlg, %callback)
@@ -391,5 +328,4 @@ function IOCallback(%dlg, %callback)
    eval(%callback);
    
    Canvas.popDialog(%dlg);
->>>>>>> unifiedRepo/Preview4_0
 }

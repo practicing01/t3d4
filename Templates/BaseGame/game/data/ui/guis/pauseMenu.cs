@@ -1,42 +1,30 @@
+function PauseMenuList::onAdd(%this)
+{
+   %this.addRow("Options", "openPauseMenuOptions", -1, -30);
+   %this.addRow("Exit to Menu", "pauseMenuExitToMenu", -1, -30);
+   %this.addRow("Exit to Desktop", "pauseMenuExitToDesktop", -1, -30);  
+}
+
 function PauseMenu::onWake(%this)
 {
    $timescale = 0;
+   
+   PauseMenuList.hidden = false;
+   PauseMenuList.setFirstResponder();
+   PauseButtonHolder.setActive();
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> unifiedRepo/Preview4_0
 function PauseMenu::onSleep(%this)
 {
    $timescale = 1;
 }
 
-<<<<<<< HEAD
-function PauseMenu::openOptionsMenu(%this)
-{
-   Canvas.pushDialog(OptionsMenu);
-   OptionsMenu.returnGui = %this; 
-   PauseOptionsMain.hidden = true; 
-}
-
-function PauseMenu::openControlsMenu(%this)
-{
-   Canvas.pushDialog(OptionsMenu);
-   OptionsMenu.returnGui = %this; 
-   PauseOptionsMain.hidden = true; 
-   OptionsMain.hidden = true;
-   ControlsMenu.hidden = false;
-}
-
-function PauseMenu::onReturnTo(%this)
-{
-   PauseOptionsMain.hidden = false;
-=======
 function PauseMenu::onReturnTo(%this)
 {
    PauseMenuList.hidden = false;
-   PauseButtonHolder.refresh();
+   PauseMenuList.setFirstResponder();
+   PauseButtonHolder.setActive();
 }
 
 function openPauseMenuOptions()
@@ -60,18 +48,6 @@ function pauseMenuExitToDesktop()
 
 function PauseButtonHolder::onWake(%this)
 {
-   %this.refresh();
-}
-
-function PauseButtonHolder::refresh(%this)
-{
-   PauseButtonHolder.add(GamepadButtonsGui);
-   
-   GamepadButtonsGui.clearButtons();
-   
-   GamepadButtonsGui.setButton(2, "A", "", "", "", true);
-   GamepadButtonsGui.setButton(3, "B", "Esc", "Back", "Canvas.popDialog();");
-   
-   GamepadButtonsGui.refreshButtons();
->>>>>>> unifiedRepo/Preview4_0
+   %this-->goButton.set("btn_a", "Return", "OK", "PauseMenuList.activateRow();", true);
+   %this-->backButton.set("btn_b", "Escape", "Back", "Canvas.popDialog();");
 }

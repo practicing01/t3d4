@@ -1,31 +1,104 @@
+$TextMediumEmphasisColor = "200 200 200";
+$TextHighEmphasisColor = "224 224 224";
+$TextDisabledColor = "108 108 108";
+
+new GuiGameListMenuProfile(DefaultListMenuProfile)
+{
+   fontType = "Arial Bold";
+   fontSize = 20;
+   fontColor = $TextMediumEmphasisColor;
+   fontColorSEL = $TextMediumEmphasisColor;
+   fontColorNA = $TextDisabledColor;
+   fontColorHL = $TextMediumEmphasisColor;
+   
+   fillColor = "108 108 108";
+   fillColorHL = "140 140 140";
+   fillColorSEL = "180 180 180";
+   
+   HitAreaUpperLeft = "16 20";
+   HitAreaLowerRight = "503 74";
+   IconOffset = "40 0";
+   TextOffset = "100 0";
+   RowSize = "500 90";
+   ColumnSplit = "250";
+   RightPad = "20";
+   bitmap = "data/ui/images/listMenuArray";
+   canKeyFocus = true;
+};
+
+new GuiControlProfile(GamepadDefaultProfile)
+{
+   border = 0;
+};
+
+new GuiControlProfile(GamepadButtonTextLeft)
+{
+   fontType = "Arial Bold";
+   fontSize = 20;
+   fontColor = "255 255 255";
+   justify = "left";
+};
+
+new GuiControlProfile(GamepadButtonTextRight : GamepadButtonTextLeft)
+{
+   justify = "right";
+};
+
+new GuiControlProfile(MenuHeaderText)
+{
+   fontType = "Arial Bold";
+   fontSize = 30;
+   fontColor = $TextHighEmphasisColor;
+   justify = "left";
+};
+
+new GuiControlProfile(MenuHeaderTextCenter)
+{
+   fontType = "Arial Bold";
+   fontSize = 30;
+   fontColor = $TextHighEmphasisColor;
+   justify = "center";
+};
+
+new GuiControlProfile(MenuSubHeaderText)
+{
+   fontType = "Arial Bold";
+   fontSize = 20;
+   fontColor = $TextMediumEmphasisColor;
+   justify = "left";
+};
+
+new GuiControlProfile(MenuMLSubHeaderText)
+{
+   fontType = "Arial Bold";
+   fontSize = 20;
+   fontColor = $TextMediumEmphasisColor;
+   justify = "left";
+   autoSizeWidth = true;
+   autoSizeHeight = true;  
+};
+
 if( !isObject( GuiMenuButtonProfile ) )
 new GuiControlProfile( GuiMenuButtonProfile )
 {
    opaque = true;
-   border = false;
+   border = true;
    fontSize = 18;
    fontType = "Arial Bold";
-<<<<<<< HEAD
-   fontColor = "240 240 240";
-   fontColorHL = "0 0 0";
-   fontColorNA = "0 0 0";
-   fontColorSEL ="0 0 0";
-=======
-   fontColor = "200 200 200";
-   fontColorHL = "80 80 80";
-   fontColorNA = "0 0 0";
-   fontColorSEL = "0 0 0";
-   fillColor = "255 255 255 120";
-   fillColorHL = "100 100 100 50";
-   fillColorNA = "0 0 0 50";
-   borderColor = "0 0 0 0";
-   borderColorNA = "0 0 0 0";
-   borderColorHL = "0 0 0 0";
->>>>>>> unifiedRepo/Preview4_0
+   fontColor = $TextMediumEmphasisColor;
+   fontColorHL = $TextMediumEmphasisColor;
+   fontColorNA = $TextDisabledColor;
+   fontColorSEL = $TextMediumEmphasisColor;
+   fillColor = "40 40 40";
+   fillColorHL = "56 56 56";
+   fillColorNA = "40 40 40";
+   borderColor = "87 87 87";
+   borderColorNA = "0 0 0";
+   borderColorHL = "255 255 255";
    fixedExtent = false;
    justify = "center";
    canKeyFocus = false;
-   bitmap = "data/ui/images/menu-button";
+   //bitmap = "data/ui/images/menu-button";
    hasBitmapArray = false;
    soundButtonDown = menuButtonPressed;
    soundButtonOver = menuButtonHover;
@@ -190,8 +263,13 @@ new GuiControlProfile( GuiBigTextProfile : GuiTextProfile )
 if( !isObject( GuiMLTextProfile ) )
 new GuiControlProfile( GuiMLTextProfile )
 {
+   fontColor = $TextMediumEmphasisColor;
+   fontColorHL = $TextMediumEmphasisColor;
+   fontColorSEL = $TextMediumEmphasisColor;
+   fontColorNA = $TextDisabledColor;
+   
    fontColorLink = "100 100 100";
-   fontColorLinkHL = "255 255 255";
+   fontColorLinkHL = $TextMediumEmphasisColor;
    autoSizeWidth = true;
    autoSizeHeight = true;  
    border = false;
@@ -202,7 +280,7 @@ if( !isObject( GuiMLWhiteTextProfile ) )
 new GuiControlProfile( GuiMLWhiteTextProfile )
 {
    fontColor = "220 220 220";
-   fontColorHL = "255 255 255";
+   fontColorHL = $TextMediumEmphasisColor;
    autoSizeWidth = true;
    autoSizeHeight = true;  
    border = false;
@@ -212,18 +290,41 @@ new GuiControlProfile( GuiMLWhiteTextProfile )
 if( !isObject( GuiTextArrayProfile ) )
 new GuiControlProfile( GuiTextArrayProfile : GuiTextProfile )
 {
-   fontColor = "250 250 250";
-   fontColorHL = " 0 0 0";
-   fontColorSEL = "0 0 0";
-   fillColor ="50 50 50";
-   fillColorHL = "125 125 125";
-   fillColorSEL = "180 180 180";
-   border = false;
+   fontColor = $TextMediumEmphasisColor;
+   fontColorHL = $TextMediumEmphasisColor;
+   fontColorSEL = $TextMediumEmphasisColor;
+   fontColorNA = $TextDisabledColor;
+   
+   fillColor = "22 22 22 255";
+   fillColorHL = "22 22 22 255"; 
+   fillColorSEL = "56 56 56 255";
+   
+   border = true;
+   borderColor ="87 87 87";
+   borderColorHL = "87 87 87";
+   borderColorSEL = "255 255 255";
+   
    category = "Core";
-<<<<<<< HEAD
-=======
    canKeyFocus = true;
->>>>>>> unifiedRepo/Preview4_0
+};
+
+if( !isObject( GuiMenuTextEditProfile ) )
+new GuiControlProfile( GuiMenuTextEditProfile : GuiTextEditProfile )
+{
+   fontColor = $TextMediumEmphasisColor;
+   fontColorHL = $TextMediumEmphasisColor;
+   fontColorSEL = $TextMediumEmphasisColor;
+   fontColorNA = $TextDisabledColor;
+   
+   fillColor = "22 22 22 255";
+   fillColorHL = "22 22 22 255";   
+   
+   border = true;
+   borderColor ="87 87 87";
+   borderColorHL = "87 87 87";
+   borderColorSEL = "255 255 255";
+   
+   category = "Core";
 };
 
 // ----------------------------------------------------------------------------
@@ -405,35 +506,17 @@ new GuiControlProfile( GuiRadioProfile )
    category = "Core";
 };
 
-// ---------------------------------------------------------------------------
-// Slider control
-// ---------------------------------------------------------------------------
-if( !isObject( GuiSliderProfile ) )
-new GuiControlProfile( GuiSliderProfile )
-{
-   bitmap = "data/ui/images/slider";
-   category = "Core";
-};
-
 //
 // Scroll Profile
 //
 if(!isObject(GuiMenuScrollProfile))
 new GuiControlProfile(GuiMenuScrollProfile)
 {
-<<<<<<< HEAD
-   opaque = true;
-   fillcolor = "50 50 50";
-   fontColor = "200 200 200";
-   fontColorHL = "250 250 250";
-   border = true;
-=======
    opaque = false;
-   fillcolor = "50 50 50";
+   fillcolor = "22 22 22";
    fontColor = "200 200 200";
    fontColorHL = "250 250 250";
    border = false;
->>>>>>> unifiedRepo/Preview4_0
    bitmap = "data/ui/images/scrollBar";
    hasBitmapArray = true;
    category = "Core";

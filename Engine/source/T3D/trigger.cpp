@@ -748,6 +748,15 @@ void Trigger::processTick(const Move* move)
    }
 }
 
+void Trigger::interpolateTick(F32 delta)
+{
+   if (isMounted()) {
+      MatrixF mat;
+      mMount.object->getRenderMountTransform( delta, mMount.node, mMount.xfm, &mat );
+      setRenderTransform(mat);
+   }
+}
+
 //--------------------------------------------------------------------------
 
 

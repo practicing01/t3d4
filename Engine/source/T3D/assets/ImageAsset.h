@@ -56,7 +56,7 @@ public:
    {
       Albedo = 0,
       Normal = 1,
-      Composite = 2,
+      PBRConfig = 2,
       GUI = 3,
       Roughness = 4,
       AO = 5,
@@ -106,6 +106,9 @@ public:
 
    void setImageType(ImageTypes type) { mImageType = type; }
 
+   bool getAssetByFilename(StringTableEntry fileName, AssetPtr<ImageAsset>* imageAsset);
+   StringTableEntry getAssetIdByFilename(StringTableEntry fileName);
+
 protected:
    virtual void            initializeAsset(void);
    virtual void            onAssetRefresh(void);
@@ -114,14 +117,27 @@ protected:
    static const char* getImageFileName(void* obj, const char* data) { return static_cast<ImageAsset*>(obj)->getImageFileName(); }
 
    void loadImage();
-
-   bool getAssetByFilename(StringTableEntry fileName, AssetPtr<ImageAsset>* imageAsset);
 };
 
 DefineConsoleType(TypeImageAssetPtr, ImageAsset)
 
 typedef ImageAsset::ImageTypes ImageAssetType;
 DefineEnumType(ImageAssetType);
+
+#define assetText(x,suff) std::string(std::string(#x) + std::string(#suff)).c_str()
+#define scriptBindMapSlot(name, consoleClass) addField(#name, TypeImageFilename, Offset(m##name##Filename, consoleClass), assetText(name,texture map.)); \
+                                      addField(assetText(name,Asset), TypeImageAssetPtr, Offset(m##name##AssetId, consoleClass), assetText(name,asset reference.));
+
+#define scriptBindMapArraySlot(name, arraySize, consoleClass) addField(#name, TypeImageFilename, Offset(m##name##Filename, consoleClass), arraySize, assetText(name,texture map.)); \
+                                      addField(assetText(name,Asset), TypeImageAssetPtr, Offset(m##name##AssetId, consoleClass), arraySize, assetText(name,asset reference.));
+
+#define DECLARE_TEXTUREMAP(name) FileName m##name##Filename;\
+                                      StringTableEntry m##name##AssetId;\
+                                      AssetPtr<ImageAsset>  m##name##Asset;
+
+#define DECLARE_TEXTUREARRAY(name,max) FileName m##name##Filename[max];\
+                                      StringTableEntry m##name##AssetId[max];\
+                                      AssetPtr<ImageAsset>  m##name##Asset[max];
 
 #endif
 
