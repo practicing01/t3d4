@@ -759,16 +759,6 @@ void Trigger::interpolateTick(F32 delta)
 
 //--------------------------------------------------------------------------
 
-
-void Trigger::interpolateTick(F32 delta)
-{
-   if (isMounted()) {
-      MatrixF mat;
-      mMount.object->getRenderMountTransform( delta, mMount.node, mMount.xfm, &mat );
-      setRenderTransform(mat);
-   }
-}
-
 U32 Trigger::packUpdate(NetConnection* con, U32 mask, BitStream* stream)
 {
    U32 i;
