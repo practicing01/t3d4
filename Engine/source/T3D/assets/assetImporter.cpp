@@ -1345,7 +1345,7 @@ void AssetImporter::processMaterialAsset(AssetImportObject* assetItem)
             for (U32 i = 0; i < suffixCount; i++)
             {
                //First, try checking based on the material's assetName for our patternbase
-               String testPath = assetItem->filePath.getPath();
+               String testPath = assetItem->filePath.getRootAndPath();
                testPath += "/" + assetItem->cleanAssetName + StringUnit::getUnit(suffixList.c_str(), i, ",;");
 
                String imagePath = AssetImporter::findImagePath(testPath);
@@ -1355,7 +1355,7 @@ void AssetImporter::processMaterialAsset(AssetImportObject* assetItem)
                   //got a match!
                   AssetImportObject* newImageAssetObj = addImportingAsset("ImageAsset", imagePath, assetItem, "");
 
-                  newImageAssetObj->imageSuffixType = ImageAsset::getImageTypeNameFromType((ImageAsset::ImageTypes)i);
+                  newImageAssetObj->imageSuffixType = ImageAsset::getImageTypeNameFromType((ImageAsset::ImageTypes)t);
 
                   matchedImageTypes[t] = newImageAssetObj;
                   break;
@@ -1364,7 +1364,7 @@ void AssetImporter::processMaterialAsset(AssetImportObject* assetItem)
                {
                   if(materialImageNoSuffix.isNotEmpty())
                   {
-                     testPath = assetItem->filePath.getPath();
+                     testPath = assetItem->filePath.getRootAndPath();
                      testPath += "/" + materialImageNoSuffix + StringUnit::getUnit(suffixList.c_str(), i, ",;");
 
                      imagePath = AssetImporter::findImagePath(testPath);
@@ -1374,7 +1374,7 @@ void AssetImporter::processMaterialAsset(AssetImportObject* assetItem)
                         //got a match!
                         AssetImportObject* newImageAssetObj = addImportingAsset("ImageAsset", imagePath, assetItem, "");
 
-                        newImageAssetObj->imageSuffixType = ImageAsset::getImageTypeNameFromType((ImageAsset::ImageTypes)i);
+                        newImageAssetObj->imageSuffixType = ImageAsset::getImageTypeNameFromType((ImageAsset::ImageTypes)t);
 
                         matchedImageTypes[t] = newImageAssetObj;
                         break;
@@ -1833,6 +1833,9 @@ void AssetImporter::resolveAssetItemIssues(AssetImportObject* assetItem)
 //
 StringTableEntry AssetImporter::autoImportFile(Torque::Path filePath)
 {
+   //Just in case we're reusing the same importer object from another import session, nuke any existing files
+   resetImportSession(true);
+
    String assetType = getAssetTypeByFile(filePath);
 
    if (assetType == String("Folder") || assetType == String("Zip"))
@@ -1902,10 +1905,12 @@ StringTableEntry AssetImporter::autoImportFile(Torque::Path filePath)
    }
 
 #if TORQUE_DEBUG
+   Con::printf("/***************/");
    for (U32 i = 0; i < activityLog.size(); i++)
    {
       Con::printf(activityLog[i].c_str());
    }
+   Con::printf("/***************/");
 #endif
 
    if (hasIssues)
@@ -2045,7 +2050,7 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
             }
          }
 
-         if (assetPath.isEmpty() && importingAssets[i]->assetType != String("MaterialAsset"))
+         if (assetPath.isEmpty() && childItem->assetType != String("MaterialAsset"))
          {
             dSprintf(importLogBuffer, sizeof(importLogBuffer), "AssetImporter::importAssets - Import attempt of %s failed, so skipping asset.", childItem->assetName.c_str());
             activityLog.push_back(importLogBuffer);
@@ -2332,7 +2337,7 @@ Torque::Path AssetImporter::importMaterialAsset(AssetImportObject* assetItem)
          }
          else if (imageType == ImageAsset::ImageTypes::PBRConfig)
          {
-            mapFieldName = "PBRConfig";
+            mapFieldName = "PBRConfigMap";
          }
          else if (imageType == ImageAsset::ImageTypes::Metalness)
          {
