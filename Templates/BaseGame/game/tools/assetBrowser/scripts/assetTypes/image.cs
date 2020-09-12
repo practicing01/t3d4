@@ -11,7 +11,7 @@ function AssetBrowser::prepareImportImageAsset(%this, %assetItem)
       }
       else
       {
-         %suffixPos = strpos(strlwr(%assetItem.AssetName), strlwr(%assetItem.imageSuffixType), 0);
+         %suffixPos = strpos(strlwr(%assetItem.AssetName), strlwr(%assetItem.ImageType), 0);
          %noSuffixName = getSubStr(%assetItem.AssetName, 0, %suffixPos);
       }
    
@@ -176,7 +176,7 @@ function AssetBrowser::buildImageAssetPreview(%this, %assetDef, %previewData)
    %previewData.assetPath = %assetDef.scriptFile;
    //%previewData.doubleClickCommand = "EditorOpenFileInTorsion( "@%previewData.assetPath@", 0 );";
    
-   %imageFilePath = %assetDef.getImageFilename();
+   %imageFilePath = %assetDef.getImagePath();
    if(isFile(%imageFilePath))
       %previewData.previewImage = %imageFilePath;
    else
@@ -195,13 +195,14 @@ function AssetBrowser::buildImageAssetPreview(%this, %assetDef, %previewData)
       "Format: " @ getWord(%info, 0) @ "\n" @ 
       "Height: " @ getWord(%info, 1) @ "\n" @ 
       "Width: " @ getWord(%info, 2) @ "\n" @ 
-      "Depth: " @ getWord(%info, 3); 
+      "Depth: " @ getWord(%info, 3) @ "\n" @ 
+      "Image File path: " @ %assetDef.getImagePath(); 
 }
 
 //Renames the asset
 function AssetBrowser::renameImageAsset(%this, %assetDef, %newAssetName)
 {
-   %newFilename = renameAssetLooseFile(%assetDef.imageFile, %newAssetName);
+   %newFilename = renameAssetLooseFile(%assetDef.getImagePath(), %newAssetName);
    
    if(!%newFilename $= "")
       return;
@@ -280,7 +281,7 @@ function parseImageSuffixes(%assetItem)
       %suffixToken = getToken(getAssetImportConfigValue("Images/DiffuseTypeSuffixes", ""), ",;", %sfx);
       if(strIsMatchExpr("*"@%suffixToken, %assetItem.AssetName))
       {
-         %assetItem.imageSuffixType = %suffixToken;
+         %assetItem.ImageType = %suffixToken;
          return "diffuse";
       }
    }
@@ -292,7 +293,7 @@ function parseImageSuffixes(%assetItem)
       %suffixToken = getToken(getAssetImportConfigValue("Images/NormalTypeSuffixes", ""), ",;", %sfx);
       if(strIsMatchExpr("*"@%suffixToken, %assetItem.AssetName))
       {
-         %assetItem.imageSuffixType = %suffixToken;
+         %assetItem.ImageType = %suffixToken;
          return "normal";
       }
    }
@@ -304,7 +305,7 @@ function parseImageSuffixes(%assetItem)
       %suffixToken = getToken(getAssetImportConfigValue("Images/RoughnessTypeSuffixes", ""), ",;", %sfx);
       if(strIsMatchExpr("*"@%suffixToken, %assetItem.AssetName))
       {
-         %assetItem.imageSuffixType = %suffixToken;
+         %assetItem.ImageType = %suffixToken;
          return "roughness";
       }
    }
@@ -316,7 +317,7 @@ function parseImageSuffixes(%assetItem)
       %suffixToken = getToken(getAssetImportConfigValue("Images/AOTypeSuffixes", ""), ",;", %sfx);
       if(strIsMatchExpr("*"@%suffixToken, %assetItem.AssetName))
       {
-         %assetItem.imageSuffixType = %suffixToken;
+         %assetItem.ImageType = %suffixToken;
          return "AO";
       }
    }
@@ -328,7 +329,7 @@ function parseImageSuffixes(%assetItem)
       %suffixToken = getToken(getAssetImportConfigValue("Images/MetalnessTypeSuffixes", ""), ",;", %sfx);
       if(strIsMatchExpr("*"@%suffixToken, %assetItem.AssetName))
       {
-         %assetItem.imageSuffixType = %suffixToken;
+         %assetItem.ImageType = %suffixToken;
          return "metalness";
       }
    }
@@ -340,7 +341,7 @@ function parseImageSuffixes(%assetItem)
       %suffixToken = getToken(getAssetImportConfigValue("Images/CompositeTypeSuffixes", ""), ",;", %sfx);
       if(strIsMatchExpr("*"@%suffixToken, %assetItem.AssetName))
       {
-         %assetItem.imageSuffixType = %suffixToken;
+         %assetItem.ImageType = %suffixToken;
          return "composite";
       }
    }

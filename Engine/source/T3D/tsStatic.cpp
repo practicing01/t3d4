@@ -511,8 +511,9 @@ bool TSStatic::_createShape()
    }
 
    //Set up the material slot vars for easy manipulation
-   S32 materialCount = mShape->materialList->getMaterialNameList().size(); //mMeshAsset->getMaterialCount();
+   /*S32 materialCount = mShape->materialList->getMaterialNameList().size(); //mMeshAsset->getMaterialCount();
 
+   //Temporarily disabled until fixup of materialName->assetId lookup logic is sorted for easy persistance
    if (isServerObject())
    {
       char matFieldName[128];
@@ -526,15 +527,13 @@ bool TSStatic::_createShape()
 
          setDataField(matFld, NULL, materialname);
       }
-   }
+   }*/
 
    return true;
 }
 
 void TSStatic::onDynamicModified(const char* slotName, const char* newValue)
 {
-   bool isSrv = isServerObject();
-
    if (FindMatch::isMatch("materialslot*", slotName, false))
    {
       if (!getShape())
@@ -1691,6 +1690,13 @@ void TSStatic::updateMaterials()
    mShapeInstance->initMaterialList();
 }
 
+void TSStatic::getUtilizedAssets(Vector<StringTableEntry>* usedAssetsList)
+{
+   if(!mShapeAsset.isNull() && mShapeAsset->getAssetId() != StringTable->insert("Core_Rendering:noShape"))
+      usedAssetsList->push_back_unique(mShapeAsset->getAssetId());
+
+}
+
 //------------------------------------------------------------------------
 //These functions are duplicated in tsStatic and shapeBase.
 //They each function a little differently; but achieve the same purpose of gathering
@@ -1703,6 +1709,9 @@ void TSStatic::onInspect(GuiInspector* inspector)
 
    //Put the GameObject group before everything that'd be gameobject-effecting, for orginazational purposes
    GuiInspectorGroup* materialGroup = inspector->findExistentGroup(StringTable->insert("Materials"));
+   if (!materialGroup)
+      return;
+
    GuiControl* stack = dynamic_cast<GuiControl*>(materialGroup->findObjectByInternalName(StringTable->insert("Stack")));
 
    //Do this on both the server and client

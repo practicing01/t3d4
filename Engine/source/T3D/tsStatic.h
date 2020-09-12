@@ -285,6 +285,10 @@ public:
 
    void updateMaterials();
 
+   bool isAnimated() { return mPlayAmbient; }
+
+   virtual void getUtilizedAssets(Vector<StringTableEntry>* usedAssetsList);
+
 private:
    virtual void   onStaticModified(const char* slotName, const char* newValue = NULL);
 protected:

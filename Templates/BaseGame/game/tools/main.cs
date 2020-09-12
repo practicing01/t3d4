@@ -38,6 +38,10 @@ if(!$Tools::loaded)
    new Settings(EditorSettings) { file = "tools/settings.xml"; };
    EditorSettings.read();
    
+   //We may need to lean on certain EditorSettings, and specifically default values if the settings.xml
+   //isn't found
+   exec("tools/worldEditor/scripts/editorPrefs.ed.cs");
+   
    exec( "tools/gui/profiles.ed.cs" );
    exec("tools/gui/EditorLoadingGui.gui");
 }
@@ -272,7 +276,7 @@ function fastLoadWorldEdit(%val)
          
       if( !$missionRunning )
       {
-         EditorNewLevel("tools/levels/DefaultEditorLevel.mis");
+         EditorNewLevel("ToolsModule:DefaultEditorLevel");
       }
       else
       {

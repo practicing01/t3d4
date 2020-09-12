@@ -148,14 +148,14 @@ function ShapeEditorPlugin::onWorldEditorStartup(%this)
 function ShapeEditorPlugin::openShapeAsset(%this, %assetDef)
 {
    %this.selectedAssetDef = %assetDef;
-   %this.open(%this.selectedAssetDef.fileName);
+   %this.open(%this.selectedAssetDef.getShapeFile());
 }
 
 function ShapeEditorPlugin::openShapeAssetId(%this, %assetId)
 {
    %this.selectedAssetDef = AssetDatabase.acquireAsset(%assetId);
    //%this.selectedAssetDef = %assetDef;
-   %this.open(%this.selectedAssetDef.fileName);
+   %this.open(%this.selectedAssetDef.getShapeFile());
 }
 
 function ShapeEditorPlugin::open(%this, %filename)
@@ -235,7 +235,7 @@ function ShapeEditorPlugin::onActivated(%this)
    {
       %obj = EWorldEditor.getSelectedObject(%i);
       %shapeFile = ShapeEditor.getObjectShapeFile(%obj);
-      if (%shapeFile !$= "")
+      if (%shapeFile !$= "" && isFile(%shapeFile))
       {
          if (!isObject(ShapeEditor.shape) || (ShapeEditor.shape.baseShape !$= %shapeFile))
          {
@@ -250,6 +250,10 @@ function ShapeEditorPlugin::onActivated(%this)
             ShapeEdShapeView.fitToShape();
          }
          break;
+      }
+      else if(%shapeFile !$= "")
+      {
+         %this.openShapeAssetId(%shapeFile);
       }
    }
 }

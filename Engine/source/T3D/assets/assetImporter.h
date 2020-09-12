@@ -15,6 +15,8 @@
 /// </summary>
 class AssetImportConfig : public SimObject
 {
+   typedef SimObject Parent;
+
    //General Settings
 public:
    /// <summary>
@@ -44,6 +46,11 @@ public:
    /// Indicates if this config supports importing meshes
    /// </summary>
    bool ImportMesh;
+
+   /// <summary>
+   /// Indicates if this config should override the per-format sis files with the config's specific settings
+   /// </summary>
+   bool UseManualShapeConfigRules;
 
    /// <summary>
    /// Indicates if the up axis in the model file should be overridden 
@@ -371,6 +378,9 @@ public:
    AssetImportConfig();
    virtual ~AssetImportConfig();
 
+   virtual bool onAdd();
+   virtual void onRemove();
+
    /// Engine.
    static void initPersistFields();
 
@@ -381,8 +391,12 @@ public:
    /// </summary>
    void loadImportConfig(Settings* configSettings, String configName);
 
+   void CopyTo(AssetImportConfig* target) const;
+
    /// Declare Console Object.
    DECLARE_CONOBJECT(AssetImportConfig);
+
+   void loadSISFile(Torque::Path filePath);
 };
 
 /// <summary>
@@ -491,8 +505,8 @@ public:
    AssetImportObject();
    virtual ~AssetImportObject();
 
-   bool onAdd();
-   void onRemove();
+   virtual bool onAdd();
+   virtual void onRemove();
 
    /// Engine.
    static void initPersistFields();
@@ -521,7 +535,7 @@ class AssetImporter : public SimObject
    /// <summary>
    /// The import configuration that is currently being utilized
    /// </summary>
-   AssetImportConfig activeImportConfig;
+   AssetImportConfig* activeImportConfig;
 
    /// <summary>
    /// A log of all the actions that have been performed by the importer
@@ -579,6 +593,9 @@ class AssetImporter : public SimObject
 public:
    AssetImporter();
    virtual ~AssetImporter();
+
+   virtual bool onAdd();
+   virtual void onRemove();
 
    /// Engine.
    static void initPersistFields();
@@ -737,6 +754,12 @@ public:
    void processShapeMaterialInfo(AssetImportObject* assetItem, S32 materialItemId);
 
    /// <summary>
+   /// Process a specific AssetImportObject that is an SoundAsset type to prepare it for importing
+   /// <para>@param assetItem, The AssetImportObject to process</para>
+   /// </summary>
+   void processSoundAsset(AssetImportObject* assetItem);
+
+   /// <summary>
    /// Run through and validate assets for issues, such as name collisions
    /// </summary>
    bool validateAssets();
@@ -783,30 +806,52 @@ public:
    /// <summary>
    /// Runs the import processing on a specific ImageAsset item
    /// <para>@param assetItem, The asset item to import</para>
-   /// <para>@return AssetId of the asset that was imported. If import failed, it will be empty.</para>
+   /// <para>@return TAML File path of the new asset that was imported. If import failed, it will be empty.</para>
    /// </summary>
    Torque::Path importImageAsset(AssetImportObject* assetItem);
 
    /// <summary>
    /// Runs the import processing on a specific MaterialAsset item
    /// <para>@param assetItem, The asset item to import</para>
-   /// <para>@return AssetId of the asset that was imported. If import failed, it will be empty.</para>
+   /// <para>@return TAML File path of the new asset that was imported. If import failed, it will be empty.</para>
    /// </summary>
    Torque::Path importMaterialAsset(AssetImportObject* assetItem);
 
    /// <summary>
    /// Runs the import processing on a specific ShapeAsset item
    /// <para>@param assetItem, The asset item to import</para>
-   /// <para>@return AssetId of the asset that was imported. If import failed, it will be empty.</para>
+   /// <para>@return TAML File path of the new asset that was imported. If import failed, it will be empty.</para>
    /// </summary>
-   Torque::Path importShapeAsset(AssetImportObject* assetItem);   
+   Torque::Path importShapeAsset(AssetImportObject* assetItem);
+
+   /// <summary>
+   /// Runs the import processing on a specific SoundAsset item
+   /// <para>@param assetItem, The asset item to import</para>
+   /// <para>@return TAML File path of the new asset that was imported. If import failed, it will be empty.</para>
+   /// </summary>
+   Torque::Path importSoundAsset(AssetImportObject* assetItem);
+
+   /// <summary>
+   /// Runs the import processing on a specific ShapeAnimationAsset item
+   /// <para>@param assetItem, The asset item to import</para>
+   /// <para>@return TAML File path of the new asset that was imported. If import failed, it will be empty.</para>
+   /// </summary>
+   Torque::Path importShapeAnimationAsset(AssetImportObject* assetItem);
 
    //
    /// <summary>
    /// Gets the currently active import configuration
    /// <para>@return Current AssetImportConfig the importer is using</para>
    /// </summary>
-   AssetImportConfig* getImportConfig() { return &activeImportConfig; }
+   AssetImportConfig* getImportConfig() { return activeImportConfig; }
+
+   void setImportConfig(AssetImportConfig* importConfig) {
+      if(importConfig != nullptr)
+         activeImportConfig = importConfig;
+   }
+
+   //
+   static String getTrueFilename(const String& fileName);
 
    //
    /// <summary>
@@ -823,6 +868,10 @@ public:
          imagePath = testPath + String(".dds");
       else if (Platform::isFile(testPath + String(".tif")))
          imagePath = testPath + String(".tif");
+
+      if(imagePath.isNotEmpty())
+         //This ensures case-correct for the filename
+         imagePath = getTrueFilename(imagePath);
 
       return imagePath;
    }

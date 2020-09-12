@@ -92,6 +92,13 @@ LevelAsset::LevelAsset() : AssetBase(), mIsSubLevel(false)
    mForestFile = StringTable->EmptyString();
    mNavmeshFile = StringTable->EmptyString();
 
+   mLevelPath = StringTable->EmptyString();
+   mPreviewImagePath = StringTable->EmptyString();
+   mPostFXPresetPath = StringTable->EmptyString();
+   mDecalsPath = StringTable->EmptyString();
+   mForestPath = StringTable->EmptyString();
+   mNavmeshPath = StringTable->EmptyString();
+
    mGamemodeName = StringTable->EmptyString();
    mMainLevelAsset = StringTable->EmptyString();
 
@@ -151,12 +158,23 @@ void LevelAsset::initializeAsset()
    Parent::initializeAsset();
 
    // Ensure the image-file is expanded.
-   mPreviewImage = expandAssetFilePath(mPreviewImage);
-   mLevelFile = expandAssetFilePath(mLevelFile);
-   mPostFXPresetFile = expandAssetFilePath(mPostFXPresetFile);
-   mDecalsFile = expandAssetFilePath(mDecalsFile);
-   mForestFile = expandAssetFilePath(mForestFile);
-   mNavmeshFile = expandAssetFilePath(mNavmeshFile);
+   mPreviewImagePath = expandAssetFilePath(mPreviewImage);
+   mLevelPath = expandAssetFilePath(mLevelFile);
+   mPostFXPresetPath = expandAssetFilePath(mPostFXPresetFile);
+   mDecalsPath = expandAssetFilePath(mDecalsFile);
+   mForestPath = expandAssetFilePath(mForestFile);
+   mNavmeshPath = expandAssetFilePath(mNavmeshFile);
+}
+
+void LevelAsset::onAssetRefresh(void)
+{
+   // Ensure the image-file is expanded.
+   mPreviewImagePath = expandAssetFilePath(mPreviewImage);
+   mLevelPath = expandAssetFilePath(mLevelFile);
+   mPostFXPresetPath = expandAssetFilePath(mPostFXPresetFile);
+   mDecalsPath = expandAssetFilePath(mDecalsFile);
+   mForestPath = expandAssetFilePath(mForestFile);
+   mNavmeshPath = expandAssetFilePath(mNavmeshFile);
 }
 
 //
@@ -310,4 +328,68 @@ void LevelAsset::setNavmeshFile(const char* pNavmeshFile)
 
    // Refresh the asset.
    refreshAsset();
+}
+
+void LevelAsset::loadDependencies()
+{
+   //First, load any material, animation, etc assets we may be referencing in our asset
+   // Find any asset dependencies.
+   AssetManager::typeAssetDependsOnHash::Iterator assetDependenciesItr = mpOwningAssetManager->getDependedOnAssets()->find(mpAssetDefinition->mAssetId);
+
+   // Does the asset have any dependencies?
+   if (assetDependenciesItr != mpOwningAssetManager->getDependedOnAssets()->end())
+   {
+      // Iterate all dependencies.
+      while (assetDependenciesItr != mpOwningAssetManager->getDependedOnAssets()->end() && assetDependenciesItr->key == mpAssetDefinition->mAssetId)
+      {
+         //Force it to be loaded by acquiring it
+         StringTableEntry assetId = assetDependenciesItr->value;
+         mAssetDependencies.push_back(AssetDatabase.acquireAsset<AssetBase>(assetId));
+
+         // Next dependency.
+         assetDependenciesItr++;
+      }
+   }
+}
+
+void LevelAsset::unloadDependencies()
+{
+   for (U32 i = 0; i < mAssetDependencies.size(); i++)
+   {
+      AssetBase* assetDef = mAssetDependencies[i];
+      AssetDatabase.releaseAsset(assetDef->getAssetId());
+   }
+}
+
+DefineEngineMethod(LevelAsset, getLevelPath, const char*, (),,
+   "Creates a new script asset using the targetFilePath.\n"
+   "@return The bool result of calling exec")
+{
+   return object->getLevelPath();
+}
+
+DefineEngineMethod(LevelAsset, getPostFXPresetPath, const char*, (), ,
+   "Creates a new script asset using the targetFilePath.\n"
+   "@return The bool result of calling exec")
+{
+   return object->getPostFXPresetPath();
+}
+
+DefineEngineMethod(LevelAsset, getDecalsPath, const char*, (), ,
+   "Creates a new script asset using the targetFilePath.\n"
+   "@return The bool result of calling exec")
+{
+   return object->getDecalsPath();
+}
+
+DefineEngineMethod(LevelAsset, loadDependencies, void, (), ,
+   "Initiates the loading of asset dependencies for this level.")
+{
+   return object->loadDependencies();
+}
+
+DefineEngineMethod(LevelAsset, unloadDependencies, void, (), ,
+   "Initiates the unloading of previously loaded asset dependencies for this level.")
+{
+   return object->unloadDependencies();
 }

@@ -199,7 +199,7 @@ function EditorOpenDeclarationInTorsion( %object )
    EditorOpenFileInTorsion( makeFullPath( %fileName ), %object.getDeclarationLine() );
 }
 
-function EditorNewLevel( %file )
+function EditorNewLevel( %level )
 {
    %saveFirst = false;
    if ( EditorIsDirty() )
@@ -219,18 +219,18 @@ function EditorNewLevel( %file )
       Editor.getUndoManager().clearAll();
    }
 
-   if( %file $= "" )
+   if( %level $= "" )
    {
-      %file = "tools/levels/DefaultEditorLevel.mis";
+      %level = "ToolsModule:DefaultEditorLevel";
    }
 
    if( !$missionRunning )
    {
       activatePackage( "BootEditor" );
-      StartGame( %file );
+      StartGame( %level );
    }
    else
-      EditorOpenMission(%file);
+      EditorOpenMission(%level);
 
    //EWorldEditor.isDirty = true;
    //ETerrainEditor.isDirty = true;
@@ -332,6 +332,9 @@ function EditorSaveMission()
          %obj.onSaveMission( $Server::MissionFile );      
    } 
    
+   //Save out the PostFX config
+   PostFXManager::savePresetHandler( $Server::LevelAsset.getPostFXPresetPath() );
+   
    EditorClearDirty();
    
    EditorGui.saveAs = false;
@@ -355,14 +358,103 @@ function EditorSaveMissionAs( %levelAsset )
       return;
    }
                
-   %missionName = %levelAssetDef.LevelFile;
+   %missionName = %levelAssetDef.getLevelPath();
                
    if( fileExt( %missionName ) !$= ".mis" )
       %missionName = %missionName @ ".mis";
       
-   //Make sure we have a selected module so we can create our module
-   //if(AssetBrowser.selectedModule $= "")
-   //   Canvas.pushDialog(
+   //Update to be our active
+   $Server::MissionFile = %missionName;
+   $Server::LevelAsset = %levelAssetDef;
+   
+   //Update the scene name to comply to the new level's name
+   GetRootScene().name = %levelAssetDef.AssetName;
+   
+   //Do the save
+   EditorSaveMission();
+   
+   //Last, we're going to load the level proper in the editor
+   updateEditorRecentLevelsList(%levelAsset);
+   
+   //If we've opened a valid level, clear the saveAs tag as it's not really applicable now
+   EditorGui.saveAs = false;
+}
+
+function EditorAutoSaveMission()
+{
+   // just save the mission without renaming it
+   
+   if($Editor::AutoSaveIndex $= "" || $Editor::AutoSaveIndex $= "5")
+      $Editor::AutoSaveIndex = 1;
+   else
+      $Editor::AutoSaveIndex++;
+      
+   %autosaveFileName = "tools/autosave/" @ fileBase($Server::MissionFile) @ "_autosave" @ $Editor::AutoSaveIndex @ fileExt($Server::MissionFile);
+   
+   // first check for dirty and read-only files:
+   if((EWorldEditor.isDirty || ETerrainEditor.isMissionDirty) && !isWriteableFileName(%autosaveFileName))
+   {
+      return false;
+   }
+   
+   //TODO: Make Autosave work with terrains
+   /*if(ETerrainEditor.isDirty)
+   {
+      // Find all of the terrain files
+      initContainerTypeSearch($TypeMasks::TerrainObjectType);
+
+      while ((%terrainObject = containerSearchNext()) != 0)
+      {
+         if (!isWriteableFileName(%terrainObject.terrainFile))
+         {
+            if (toolsMessageBox("Error", "Terrain file \""@ %terrainObject.terrainFile @ "\" is read-only.  Continue?", "Ok", "Stop") == $MROk)
+               continue;
+            else
+               return false;
+         }
+      }
+   }*/
+  
+   // now write the terrain and mission files out:
+
+   if(EWorldEditor.isDirty || ETerrainEditor.isMissionDirty)
+      getScene(0).save(%autosaveFileName);
+      
+   //TODO: Make Autosave work with terrains
+   /*if(ETerrainEditor.isDirty)
+   {
+      // Find all of the terrain files
+      initContainerTypeSearch($TypeMasks::TerrainObjectType);
+
+      while ((%terrainObject = containerSearchNext()) != 0)
+      {
+         if(%terrainObject.terrainAsset !$= "")
+         {
+            //we utilize a terrain asset, so we'll update our dependencies while we're at it
+            %terrainObject.saveAsset();
+         }
+         else
+         {
+            %terrainObject.save(%terrainObject.terrainFile);
+         }
+      }
+   }
+
+   ETerrainPersistMan.saveDirty();*/
+      
+   // Give EditorPlugins a chance to save.
+   for ( %i = 0; %i < EditorPluginSet.getCount(); %i++ )
+   {
+      %obj = EditorPluginSet.getObject(%i);
+      if ( %obj.isDirty() )
+         %obj.onSaveMission( %autosaveFileName );      
+   } 
+   
+   %autosaveInterval = EditorSettings.value("WorldEditor/AutosaveInterval", "5");
+   %autosaveInterval = %autosaveInterval * 60000; //convert to milliseconds from minutes
+   EditorGui.autosaveSchedule = schedule( %autosaveInterval, 0, "EditorAutoSaveMission" );
+   
+   return true;
 }
 
 function EditorOpenMission(%levelAsset)
@@ -399,41 +491,18 @@ function EditorOpenMission(%levelAsset)
          %levelAssetId = %levelAsset;
       }
       
-      EditorSettings.setValue("WorldEditor/lastEditedLevel", %levelAssetId);
+      updateEditorRecentLevelsList(%levelAssetId);
       
-      //update the recent levels list
-      %recentLevels = EditorSettings.value("WorldEditor/recentLevelsList");
-      %recentCount = getTokenCount(%recentLevels, ",");
-      
-      %updatedRecentList = %levelAssetId;
-      
-      %updatedRecentCount = 1;
-      for(%i=0; %i < %recentCount; %i++)
-      {
-         %recentEntry = getToken(%recentLevels, ",", %i);
-         
-         if(%levelAssetId $= %recentEntry)
-            continue;
-         
-         %updatedRecentList = %updatedRecentList @ "," @ %recentEntry;
-         
-         %updatedRecentCount++;
-         
-         if(%updatedRecentCount == 10)
-            break;
-      }
-      
-      EditorSettings.setValue("WorldEditor/recentLevelsList", %updatedRecentList);
-      
-      updateRecentLevelsListing();
-      
-      %filename = %assetDef.levelFile;
+      %filename = %assetDef.getLevelPath();
       
       if(%filename $= "")
       {
          error("Selected Level Asset doesn't have a valid levelFile path!");
          return;
       }
+      
+      //We cool, so dereference the def because we don't need it the rest of the way
+      AssetDatabase.releaseAsset(%levelAssetId);
    }
       
    // close the current editor, it will get cleaned up by MissionCleanup
@@ -448,11 +517,11 @@ function EditorOpenMission(%levelAsset)
    if( !$missionRunning )
    {
       activatePackage( "BootEditor" );
-      StartGame( %filename );
+      StartGame( %levelAssetId );
    }
    else
    {
-      loadMission( %filename, true ) ;
+      loadMission( %levelAssetId, true ) ;
    
       pushInstantGroup();
 
@@ -473,7 +542,7 @@ function EditorOpenMission(%levelAsset)
 function EditorOpenSceneAppend(%levelAsset)
 {
    //Load the asset's level file
-   exec(%levelAsset.levelFile);
+   exec(%levelAsset.getLevelPath());
    
    //We'll assume the scene name and assetname are the same for now
    %sceneName = %levelAsset.AssetName;
@@ -499,6 +568,37 @@ function MakeSelectionASublevel()
    }
    %a = EWorldEditor.getSelectedObject(0);
    %b = EWorldEditor.getSelectedObject(1);*/
+}
+
+function updateEditorRecentLevelsList(%levelAssetId)
+{
+   EditorSettings.setValue("WorldEditor/lastEditedLevel", %levelAssetId);
+      
+   //update the recent levels list
+   %recentLevels = EditorSettings.value("WorldEditor/recentLevelsList");
+   %recentCount = getTokenCount(%recentLevels, ",");
+   
+   %updatedRecentList = %levelAssetId;
+   
+   %updatedRecentCount = 1;
+   for(%i=0; %i < %recentCount; %i++)
+   {
+      %recentEntry = getToken(%recentLevels, ",", %i);
+      
+      if(%levelAssetId $= %recentEntry)
+         continue;
+      
+      %updatedRecentList = %updatedRecentList @ "," @ %recentEntry;
+      
+      %updatedRecentCount++;
+      
+      if(%updatedRecentCount == 10)
+         break;
+   }
+   
+   EditorSettings.setValue("WorldEditor/recentLevelsList", %updatedRecentList);
+   
+   updateRecentLevelsListing();
 }
 
 function EditorExportToCollada()

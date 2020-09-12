@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include "T3D/assets/LevelAsset.h"
 
 Scene * Scene::smRootScene = nullptr;
 Vector<Scene*> Scene::smSceneList;
@@ -33,6 +34,11 @@ void Scene::initPersistFields()
    addGroup("Gameplay");
    addField("gameModeName", TypeString, Offset(mGameModeName, Scene), "The name of the gamemode that this scene utilizes");
    endGroup("Gameplay");
+
+   addGroup("PostFX");
+   addProtectedField("EditPostEffects", TypeBool, Offset(mEditPostFX, Scene),
+      &Scene::_editPostEffects, &defaultProtectedGetFn, "Edit Scene's default Post Effects", AbstractClassRep::FieldFlags::FIELD_ComponentInspectors);
+   endGroup("PostFX");
 }
 
 bool Scene::onAdd()
@@ -85,6 +91,18 @@ void Scene::onPostAdd()
 {
    if (isMethod("onPostAdd"))
       Con::executef(this, "onPostAdd");
+}
+
+bool Scene::_editPostEffects(void* object, const char* index, const char* data)
+{
+   Scene* scene = static_cast<Scene*>(object);
+
+#ifdef TORQUE_TOOLS
+   if(Con::isFunction("editScenePostEffects"))
+      Con::executef("editScenePostEffects", scene);
+#endif
+
+   return false;
 }
 
 void Scene::addObject(SimObject* object)
@@ -180,6 +198,119 @@ void Scene::unpackUpdate(NetConnection *conn, BitStream *stream)
 
 }
 
+void Scene::dumpUtilizedAssets()
+{
+   Con::printf("Dumping utilized assets in scene!");
+
+   Vector<StringTableEntry> utilizedAssetsList;
+   for (U32 i = 0; i < mPermanentObjects.size(); i++)
+   {
+      mPermanentObjects[i]->getUtilizedAssets(&utilizedAssetsList);
+   }
+
+   for (U32 i = 0; i < mDynamicObjects.size(); i++)
+   {
+      mDynamicObjects[i]->getUtilizedAssets(&utilizedAssetsList);
+   }
+
+   for (U32 i = 0; i < utilizedAssetsList.size(); i++)
+   {
+      Con::printf("Utilized Asset: %s", utilizedAssetsList[i]);
+   }
+
+   Con::printf("Utilized Asset dump complete!");
+}
+
+StringTableEntry Scene::getOriginatingFile()
+{
+   return getFilename();
+}
+
+StringTableEntry Scene::getLevelAsset()
+{
+   StringTableEntry levelFile = getFilename();
+
+   if (levelFile == StringTable->EmptyString())
+      return StringTable->EmptyString();
+
+   AssetQuery* query = new AssetQuery();
+   query->registerObject();
+
+   S32 foundAssetcount = AssetDatabase.findAssetLooseFile(query, levelFile);
+   if (foundAssetcount == 0)
+      return StringTable->EmptyString();
+   else
+      return query->mAssetList[0];
+}
+
+bool Scene::saveScene(StringTableEntry fileName)
+{
+   //So, we ultimately want to not only save out the level, but also collate all the assets utilized
+   //by the static objects in the scene so we can have those before we parse the level file itself
+   //Useful for preloading or stat tracking
+
+   //First, save the level file
+   if (fileName == StringTable->EmptyString())
+   {
+      fileName = getOriginatingFile();
+   }
+
+   bool saveSuccess = save(fileName);
+
+   if (!saveSuccess)
+      return false;
+
+   //Get the level asset
+   StringTableEntry levelAsset = getLevelAsset();
+   if (levelAsset == StringTable->EmptyString())
+      return saveSuccess;
+
+   LevelAsset* levelAssetDef = AssetDatabase.acquireAsset<LevelAsset>(levelAsset);
+   levelAssetDef->clearAssetDependencyFields("staticObjectAssetDependency");
+
+   //Next, lets build out our 
+   Vector<StringTableEntry> utilizedAssetsList;
+   for (U32 i = 0; i < size(); i++)
+   {
+      getUtilizedAssetsFromSceneObject(getObject(i), &utilizedAssetsList);
+   }
+
+   for (U32 i = 0; i < utilizedAssetsList.size(); i++)
+   {
+      char depSlotName[50];
+      dSprintf(depSlotName, sizeof(depSlotName), "%s%d", "staticObjectAssetDependency", i);
+
+      char depValue[255];
+      dSprintf(depValue, sizeof(depValue), "@Asset=%s", utilizedAssetsList[i]);
+
+      levelAssetDef->setDataField(StringTable->insert(depSlotName), NULL, StringTable->insert(depValue));
+
+   }
+
+   saveSuccess = levelAssetDef->saveAsset();
+
+   return saveSuccess;
+}
+
+void Scene::getUtilizedAssetsFromSceneObject(SimObject* object, Vector<StringTableEntry>* usedAssetsList)
+{
+   SceneObject* obj = dynamic_cast<SceneObject*>(object);
+   if(obj)
+      obj->getUtilizedAssets(usedAssetsList);
+
+   SimGroup* group = dynamic_cast<SimGroup*>(object);
+   if (group)
+   {
+      for (U32 c = 0; c < group->size(); c++)
+      {
+         SceneObject* childObj = dynamic_cast<SceneObject*>(group->getObject(c));
+
+         //Recurse down
+         getUtilizedAssetsFromSceneObject(childObj, usedAssetsList);
+      }
+   }
+}
+
 //
 Vector<SceneObject*> Scene::getObjectsByClass(String className, bool checkSubscenes)
 {
@@ -250,4 +381,35 @@ DefineEngineMethod(Scene, getObjectsByClass, String, (String className), (""),
 
    //return object->getObjectsByClass(className);
    return "";
+}
+
+DefineEngineMethod(Scene, dumpUtilizedAssets, void, (), ,
+   "Get the root Scene object that is loaded.\n"
+   "@return The id of the Root Scene. Will be 0 if no root scene is loaded")
+{
+   object->dumpUtilizedAssets();
+}
+
+DefineEngineMethod(Scene, getOriginatingFile, const char*, (), ,
+   "Get the root Scene object that is loaded.\n"
+   "@return The id of the Root Scene. Will be 0 if no root scene is loaded")
+{
+   return object->getOriginatingFile();
+}
+
+DefineEngineMethod(Scene, getLevelAsset, const char*, (), ,
+   "Get the root Scene object that is loaded.\n"
+   "@return The id of the Root Scene. Will be 0 if no root scene is loaded")
+{
+   return object->getLevelAsset();
+}
+
+DefineEngineMethod(Scene, save, bool, (const char* fileName), (""),
+   "Save out the object to the given file.\n"
+   "@param fileName The name of the file to save to."
+   "@param selectedOnly If true, only objects marked as selected will be saved out.\n"
+   "@param preAppendString Text which will be preprended directly to the object serialization.\n"
+   "@param True on success, false on failure.")
+{
+   return object->saveScene(StringTable->insert(fileName));
 }

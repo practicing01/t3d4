@@ -256,7 +256,10 @@ function EditorGui::init(%this)
    
    // make sure to show the default world editor guis
    EditorGui.bringToFront( EWorldEditor );
-   EWorldEditor.setVisible( false );       
+   EWorldEditor.setVisible( false );  
+   
+   // Start up the settings window
+   ESettingsWindow.startup();     
    
    // Call the startup callback on the editor plugins.   
    for ( %i = 0; %i < EditorPluginSet.getCount(); %i++ )
@@ -266,9 +269,6 @@ function EditorGui::init(%this)
    }
    
    callOnModules("onWorldEditorStartup", "Tools");
-
-   // With everything loaded, start up the settings window
-   ESettingsWindow.startup();
    
    // Start up initial editor plugin.
    
@@ -1631,7 +1631,7 @@ function EditorTree::onRightMouseUp( %this, %itemId, %mouse, %obj )
       %popup.item[ 0 ] = "Delete" TAB "" TAB "EditorMenuEditDelete();";
       %popup.item[ 1 ] = "Group" TAB "" TAB "EWorldEditor.addSimGroup( true );";
       %popup.item[ 2 ] = "-";
-      %popup.item[ 1 ] = "Make select a Sub-Level" TAB "" TAB "MakeSelectionASublevel();";
+      %popup.item[ 3 ] = "Make select a Sub-Level" TAB "" TAB "MakeSelectionASublevel();";
    }
    else
    {
@@ -1651,6 +1651,7 @@ function EditorTree::onRightMouseUp( %this, %itemId, %mouse, %obj )
          %popup.item[ 1 ] = "Delete" TAB "" TAB "EWorldEditor.deleteMissionObject(" @ %popup.object @ ");";
          %popup.item[ 2 ] = "Inspect" TAB "" TAB "inspectObject(" @ %popup.object @ ");";
          %popup.item[ 3 ] = "-";
+         %popup.item[ 4 ] = "Add SimGroup" TAB "" TAB "EWorldEditor.addSimGroup( false );";
       }
       else 
       {
@@ -1925,6 +1926,10 @@ function Editor::open(%this)
    
    if(EditorSettings.value("WorldEditor/Layout/LayoutMode", "Classic") $= "Modern")
       togglePanelLayout();
+      
+   %autosaveInterval = EditorSettings.value("WorldEditor/AutosaveInterval", "5");
+   %autosaveInterval = %autosaveInterval * 60000; //convert to milliseconds from minutes
+   EditorGui.autosaveSchedule = schedule( %autosaveInterval, 0, "EditorAutoSaveMission" );
 }
 
 function Editor::close(%this, %gui)
@@ -2063,6 +2068,9 @@ function EWorldEditor::syncGui( %this )
    ESnapOptions-->GridSize.setText( EWorldEditor.getGridSize() );
    
    ESnapOptions-->GridSnapButton.setStateOn( %this.getGridSnap() );
+   
+   %this.UseGroupCenter = EditorSettings.value("WorldEditor/Tools/UseGroupCenter");
+   
    ESnapOptions-->GroupSnapButton.setStateOn( %this.UseGroupCenter );
    SnapToBar-->objectGridSnapBtn.setStateOn( %this.getGridSnap() );
    ESnapOptions-->NoSnapButton.setStateOn( !%this.stickToGround && !%this.getSoftSnap() && !%this.getGridSnap() );
@@ -2086,7 +2094,7 @@ function EWorldEditor::syncToolPalette( %this )
 function EWorldEditor::addSimGroup( %this, %groupCurrentSelection )
 {
    %activeSelection = %this.getActiveSelection();
-   if ( %activeSelection.getObjectIndex( getScene(0) ) != -1 )
+   if ( %groupCurrentSelection && %activeSelection.getObjectIndex( getScene(0) ) != -1 )
    {
       toolsMessageBoxOK( "Error", "Cannot add Scene to a new SimGroup" );
       return;
@@ -2320,6 +2328,7 @@ function toggleSnappingOptions( %var )
    else if( %var $= "byGroup" )
    {
 	   EWorldEditor.UseGroupCenter = !EWorldEditor.UseGroupCenter;
+	   EditorSettings.setValue("WorldEditor/Tools/UseGroupCenter", EWorldEditor.UseGroupCenter );
 	   ESnapOptions->GroupSnapButton.setStateOn(EWorldEditor.UseGroupCenter);
    }
    else

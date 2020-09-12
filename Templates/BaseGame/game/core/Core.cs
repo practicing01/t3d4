@@ -65,9 +65,6 @@ function CoreModule::onCreate(%this)
    {
       if(isFile("tools/main.cs") && !$isDedicated)
          exec("tools/main.cs");
-         
-      ModuleDatabase.scanModules( "tools", false );
-      ModuleDatabase.LoadGroup( "Tools" );
    }
 }
 

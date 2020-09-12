@@ -93,6 +93,8 @@ public:
    NamedTexTargetRef mDiffuseLightingTarget;
    GFXTexHandle      mDiffuseLightingTex;
 
+   GFXTextureTargetRef mLightingTargetRef;
+
    /// The shadow filter mode to use on shadowed light materials.
    static ShadowFilterMode smShadowFilterMode;
 
@@ -112,6 +114,8 @@ public:
    static bool smUseLightFade;
    static F32 smLightFadeEnd;
    static F32 smLightFadeStart;
+
+   static bool smAllowLocalLightShadows;
 
    // Used for console init
    AdvancedLightBinManager( AdvancedLightManager *lm = NULL, 

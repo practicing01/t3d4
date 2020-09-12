@@ -464,6 +464,8 @@ bool TerrainBlock::saveAsset()
       mTerrainAsset->clearAssetDependencyFields("terrainMaterailAsset");
 
       AssetQuery* pAssetQuery = new AssetQuery();
+      pAssetQuery->registerObject();
+
       AssetDatabase.findAssetType(pAssetQuery, "TerrainMaterialAsset");
 
       TerrainBlock* clientTerr = static_cast<TerrainBlock*>(getClientObject());
@@ -1418,6 +1420,11 @@ void TerrainBlock::getMinMaxHeight( F32 *minHeight, F32 *maxHeight ) const
    *maxHeight = fixedToFloat( sq->maxHeight );
 }
 
+void TerrainBlock::getUtilizedAssets(Vector<StringTableEntry>* usedAssetsList)
+{
+   if (!mTerrainAsset.isNull())
+      usedAssetsList->push_back_unique(mTerrainAsset->getAssetId());
+}
 //-----------------------------------------------------------------------------
 // Console Methods
 //-----------------------------------------------------------------------------

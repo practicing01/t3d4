@@ -108,6 +108,7 @@ EndImplementEnumType;
 ImageAsset::ImageAsset() : AssetBase(), mImage(nullptr), mUseMips(true), mIsHDRImage(false), mIsValidImage(false), mImageType(Albedo)
 {
    mImageFileName = StringTable->EmptyString();
+   mImagePath = StringTable->EmptyString();
 }
 
 //-----------------------------------------------------------------------------
@@ -254,14 +255,16 @@ void ImageAsset::loadImage()
 
 void ImageAsset::initializeAsset()
 {
-   mImageFileName = expandAssetFilePath(mImageFileName);
+   mImagePath = expandAssetFilePath(mImageFileName);
 
    loadImage();
 }
 
 void ImageAsset::onAssetRefresh()
 {
-   setImageFileName(mImageFileName);
+   mImagePath = expandAssetFilePath(mImageFileName);
+
+   loadImage();
 }
 
 void ImageAsset::setImageFileName(const char* pScriptFile)
@@ -350,11 +353,11 @@ ImageAsset::ImageTypes ImageAsset::getImageTypeFromName(const char* name)
    return (ImageTypes)ret;
 }
 
-DefineEngineMethod(ImageAsset, getImageFilename, const char*, (), ,
+DefineEngineMethod(ImageAsset, getImagePath, const char*, (), ,
    "Creates an instance of the given GameObject given the asset definition.\n"
    "@return The GameObject entity created from the asset.")
 {
-   return object->getImageFileName();
+   return object->getImagePath();
 }
 
 DefineEngineMethod(ImageAsset, getImageInfo, const char*, (), ,

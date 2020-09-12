@@ -15,6 +15,8 @@
 #include "ts/tsShapeConstruct.h"
 #include "core/resourceManager.h"
 
+#include "materials/materialManager.h"
+
 ConsoleDocClass(AssetImportConfig,
    "@brief Defines properties for an AssetImprotConfig object.\n"
    "@AssetImportConfig is a SimObject derived object intended to act as a container for all the necessary configuration data when running the Asset Importer.\n"
@@ -33,6 +35,7 @@ AssetImportConfig::AssetImportConfig() :
    PreventImportWithErrors(true),
    AutomaticallyPromptMissingFiles(false),
    ImportMesh(true),
+   UseManualShapeConfigRules(false),
    DoUpAxisOverride(false),
    UpAxisOverride("Z_AXIS"),
    DoScaleOverride(false),
@@ -101,6 +104,19 @@ AssetImportConfig::~AssetImportConfig()
 
 }
 
+bool AssetImportConfig::onAdd()
+{
+   if (!Parent::onAdd())
+      return false;
+
+   return true;
+}
+
+void AssetImportConfig::onRemove()
+{
+   Parent::onRemove();
+}
+
 /// Engine.
 void AssetImportConfig::initPersistFields()
 {
@@ -115,7 +131,8 @@ void AssetImportConfig::initPersistFields()
 
    addGroup("Meshes");
       addField("ImportMesh", TypeBool, Offset(ImportMesh, AssetImportConfig), "Indicates if this config supports importing meshes");
-      addField("DoUpAxisOverride", TypeBool, Offset(DoUpAxisOverride, AssetImportConfig), "Indicates if the up axis in the model file should be overridden ");
+      addField("UseManualShapeConfigRules", TypeBool, Offset(UseManualShapeConfigRules, AssetImportConfig), "Indicates if this config should override the per-format sis files with the config's specific settings");
+      addField("DoUpAxisOverride", TypeBool, Offset(DoUpAxisOverride, AssetImportConfig), "Indicates if the up axis in the model file should be overridden");
       addField("UpAxisOverride", TypeRealString, Offset(UpAxisOverride, AssetImportConfig), "If overriding, what axis should be used as up. Options are X_AXIS, Y_AXIS, Z_AXIS");
       addField("DoScaleOverride", TypeBool, Offset(DoScaleOverride, AssetImportConfig), "Indicates if the scale in the model file should be overridden");
       addField("ScaleOverride", TypeF32, Offset(ScaleOverride, AssetImportConfig), "If overriding, what scale should be used");
@@ -204,6 +221,7 @@ void AssetImportConfig::loadImportConfig(Settings* configSettings, String config
 
    //Meshes
    ImportMesh = dAtob(configSettings->value(String(configName + "/Meshes/ImportMesh").c_str()));
+   UseManualShapeConfigRules = dAtob(configSettings->value(String(configName + "/Meshes/UseManualShapeConfigRules").c_str()));
    DoUpAxisOverride = dAtob(configSettings->value(String(configName + "/Meshes/DoUpAxisOverride").c_str()));
    UpAxisOverride = configSettings->value(String(configName + "/Meshes/UpAxisOverride").c_str());
    DoScaleOverride = dAtob(configSettings->value(String(configName + "/Meshes/DoScaleOverride").c_str()));
@@ -277,6 +295,89 @@ void AssetImportConfig::loadImportConfig(Settings* configSettings, String config
    SoundsCompressed = dAtob(configSettings->value(String(configName + "/Sounds/Compressed").c_str()));
 }
 
+void AssetImportConfig::CopyTo(AssetImportConfig* target) const
+{
+   target->DuplicatAutoResolution = DuplicatAutoResolution;
+   target->WarningsAsErrors = WarningsAsErrors;
+   target->PreventImportWithErrors = PreventImportWithErrors;
+   target->AutomaticallyPromptMissingFiles = AutomaticallyPromptMissingFiles;
+
+   //Meshes
+   target->ImportMesh = ImportMesh;
+   target->UseManualShapeConfigRules = UseManualShapeConfigRules;
+   target->DoUpAxisOverride = DoUpAxisOverride;
+   target->UpAxisOverride = UpAxisOverride;
+   target->DoScaleOverride = DoScaleOverride;
+   target->ScaleOverride = ScaleOverride;
+   target->IgnoreNodeScale = IgnoreNodeScale;
+   target->AdjustCenter = AdjustCenter;
+   target->AdjustFloor = AdjustFloor;
+   target->CollapseSubmeshes = CollapseSubmeshes;
+   target->LODType = LODType;
+   target->ImportedNodes = ImportedNodes;
+   target->IgnoreNodes = IgnoreNodes;
+   target->ImportMeshes = ImportMeshes;
+   target->IgnoreMeshes = IgnoreMeshes;
+
+   //Assimp/Collada
+   target->convertLeftHanded = convertLeftHanded;
+   target->calcTangentSpace = calcTangentSpace;
+   target->removeRedundantMats = removeRedundantMats;
+   target->genUVCoords = genUVCoords;
+   target->TransformUVs = TransformUVs;
+   target->flipUVCoords = flipUVCoords;
+   target->findInstances = findInstances;
+   target->limitBoneWeights = limitBoneWeights;
+   target->JoinIdenticalVerts = JoinIdenticalVerts;
+   target->reverseWindingOrder = reverseWindingOrder;
+   target->invertNormals = invertNormals;
+
+   //Materials
+   target->ImportMaterials = ImportMaterials;
+   target->CreatePBRConfig = CreatePBRConfig;
+   target->UseDiffuseSuffixOnOriginImage = UseDiffuseSuffixOnOriginImage;
+   target->UseExistingMaterials = UseExistingMaterials;
+   target->IgnoreMaterials = IgnoreMaterials;
+   target->PopulateMaterialMaps = PopulateMaterialMaps;
+
+   //Animations
+   target->ImportAnimations = ImportAnimations;
+   target->SeparateAnimations = SeparateAnimations;
+   target->SeparateAnimationPrefix = SeparateAnimationPrefix;
+   target->animTiming = animTiming;
+   target->animFPS = animFPS;
+
+   //Collisions
+   target->GenerateCollisions = GenerateCollisions;
+   target->GenCollisionType = GenCollisionType;
+   target->CollisionMeshPrefix = CollisionMeshPrefix;
+   target->GenerateLOSCollisions = GenerateLOSCollisions;
+   target->GenLOSCollisionType = GenLOSCollisionType;
+   target->LOSCollisionMeshPrefix = LOSCollisionMeshPrefix;
+
+   //Images
+   target->importImages = importImages;
+   target->ImageType = ImageType;
+   target->DiffuseTypeSuffixes = DiffuseTypeSuffixes;
+   target->NormalTypeSuffixes = NormalTypeSuffixes;
+   target->MetalnessTypeSuffixes = MetalnessTypeSuffixes;
+   target->RoughnessTypeSuffixes = RoughnessTypeSuffixes;
+   target->SmoothnessTypeSuffixes = SmoothnessTypeSuffixes;
+   target->AOTypeSuffixes = AOTypeSuffixes;
+   target->PBRTypeSuffixes = PBRTypeSuffixes;
+   target->TextureFilteringMode = TextureFilteringMode;
+   target->UseMips = UseMips;
+   target->IsHDR = IsHDR;
+   target->Scaling = Scaling;
+   target->ImagesCompressed = ImagesCompressed;
+   target->GenerateMaterialOnImport = GenerateMaterialOnImport;
+
+   //Sounds
+   target->VolumeAdjust = VolumeAdjust;
+   target->PitchAdjust = PitchAdjust;
+   target->SoundsCompressed = SoundsCompressed;
+}
+
 ConsoleDocClass(AssetImportObject,
    "@brief Defines properties for an AssetImportObject object.\n"
    "@AssetImportObject is a SimObject derived object intended to act as a stand-in for the to-be imported objects.\n"
@@ -338,7 +439,7 @@ void AssetImportObject::initPersistFields()
 
    addField("tamlFilePath", TypeRealString, Offset(tamlFilePath, AssetImportObject), "What is the ultimate asset taml file path for this import item");
 
-   addField("imageSuffixType", TypeRealString, Offset(imageSuffixType, AssetImportObject), "Specific to ImageAsset type. What is the image asset's suffix type. Options are: Albedo, Normal, Roughness, AO, Metalness, PBRConfig");
+   addField("imageType", TypeRealString, Offset(imageSuffixType, AssetImportObject), "Specific to ImageAsset type. What is the image asset's suffix type. Options are: Albedo, Normal, Roughness, AO, Metalness, PBRConfig");
 
    addField("shapeInfo", TYPEID< GuiTreeViewCtrl >(), Offset(shapeInfo, AssetImportObject), "Specific to ShapeAsset type. Processed information about the shape file. Contains numbers and lists of meshes, materials and animations");
 }
@@ -371,13 +472,26 @@ AssetImporter::AssetImporter() :
    importIssues(false),
    isReimport(false),
    assetHeirarchyChanged(false),
-   importLogBuffer("")
+   importLogBuffer(""),
+   activeImportConfig(nullptr)
 {
 }
 
 AssetImporter::~AssetImporter()
 {
+}
 
+bool AssetImporter::onAdd()
+{
+   if (!Parent::onAdd())
+      return false;
+
+   return true;
+}
+
+void AssetImporter::onRemove()
+{
+   Parent::onRemove();
 }
 
 void AssetImporter::initPersistFields()
@@ -579,27 +693,27 @@ String AssetImporter::parseImageSuffixes(String assetName, String* suffixType)
       switch (suffixTypeIdx)
       {
          case 0:
-            suffixList = activeImportConfig.DiffuseTypeSuffixes;
+            suffixList = activeImportConfig->DiffuseTypeSuffixes;
             suffixType->insert(0, "Albedo", 10);
             break;
          case 1:
-            suffixList = activeImportConfig.NormalTypeSuffixes;
+            suffixList = activeImportConfig->NormalTypeSuffixes;
             suffixType->insert(0, "Normal", 10);
             break;
          case 2:
-            suffixList = activeImportConfig.RoughnessTypeSuffixes;
+            suffixList = activeImportConfig->RoughnessTypeSuffixes;
             suffixType->insert(0, "Roughness", 10);
             break;
          case 3:
-            suffixList = activeImportConfig.AOTypeSuffixes;
+            suffixList = activeImportConfig->AOTypeSuffixes;
             suffixType->insert(0, "AO", 10);
             break;
          case 4:
-            suffixList = activeImportConfig.MetalnessTypeSuffixes;
+            suffixList = activeImportConfig->MetalnessTypeSuffixes;
             suffixType->insert(0, "Metalness", 10);
             break;
          case 5:
-            suffixList = activeImportConfig.PBRTypeSuffixes;
+            suffixList = activeImportConfig->PBRTypeSuffixes;
             suffixType->insert(0, "PBRConfig", 10);
             break;
          default:
@@ -616,6 +730,9 @@ String AssetImporter::parseImageSuffixes(String assetName, String* suffixType)
          if (FindMatch::isMatch(searchSuffix.c_str(), assetName.c_str(), false))
          {
             //We have a match, so indicate as such
+            S32 pos = assetName.length();
+            pos -= searchSuffix.length();
+            suffix = assetName.substr(pos+1);
             return suffix;
          }
       }
@@ -649,6 +766,103 @@ String AssetImporter::getAssetTypeByFile(Torque::Path filePath)
    return "";
 }
 
+String AssetImporter::getTrueFilename(const String& fileName)
+{
+   Torque::Path pth(fileName);
+   String pattern = pth.getFullPath() + "*";
+
+   static const String sSlash("/");
+
+   Vector<String> findFilesResults;
+
+   String sPattern(Torque::Path::CleanSeparators(pattern));
+   if (sPattern.isEmpty())
+   {
+      Con::errorf("findFirstFile() requires a search pattern");
+      return "";
+   }
+
+   char scriptFilenameBuffer[1024];
+
+   if (!Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), sPattern.c_str()))
+   {
+      Con::errorf("findFirstFile() given initial directory cannot be expanded: '%s'", pattern.c_str());
+      return "";
+   }
+   sPattern = String::ToString(scriptFilenameBuffer);
+
+   String::SizeType slashPos = sPattern.find('/', 0, String::Right);
+   //    if(slashPos == String::NPos)
+   //    {
+   //       Con::errorf("findFirstFile() missing search directory or expression: '%s'", sPattern.c_str());
+   //       return -1;
+   //    }
+
+      // Build the initial search path
+   Torque::Path givenPath(Torque::Path::CompressPath(sPattern));
+   givenPath.setFileName("*");
+   givenPath.setExtension("*");
+
+   if (givenPath.getPath().length() > 0 && givenPath.getPath().find('*', 0, String::Right) == givenPath.getPath().length() - 1)
+   {
+      // Deal with legacy searches of the form '*/*.*'
+      String suspectPath = givenPath.getPath();
+      String::SizeType newLen = suspectPath.length() - 1;
+      if (newLen > 0 && suspectPath.find('/', 0, String::Right) == suspectPath.length() - 2)
+      {
+         --newLen;
+      }
+      givenPath.setPath(suspectPath.substr(0, newLen));
+   }
+
+   Torque::FS::FileSystemRef fs = Torque::FS::GetFileSystem(givenPath);
+   //Torque::Path path = fs->mapTo(givenPath);
+   Torque::Path path = givenPath;
+
+   // Make sure that we have a root so the correct file system can be determined when using zips
+   if (givenPath.isRelative())
+      path = Torque::Path::Join(Torque::FS::GetCwd(), '/', givenPath);
+
+   path.setFileName(String::EmptyString);
+   path.setExtension(String::EmptyString);
+   if (!Torque::FS::IsDirectory(path))
+   {
+      Con::errorf("findFirstFile() invalid initial search directory: '%s'", path.getFullPath().c_str());
+      return "";
+   }
+
+   // Build the search expression
+   const String expression(slashPos != String::NPos ? sPattern.substr(slashPos + 1) : sPattern);
+   if (expression.isEmpty())
+   {
+      Con::errorf("findFirstFile() requires a search expression: '%s'", sPattern.c_str());
+      return "";
+   }
+
+   S32 results = Torque::FS::FindByPattern(path, expression, false, findFilesResults, false);
+   if (givenPath.isRelative() && results > 0)
+   {
+      // Strip the CWD out of the returned paths
+      // MakeRelativePath() returns incorrect results (it adds a leading ..) so doing this the dirty way
+      const String cwd = Torque::FS::GetCwd().getFullPath();
+      for (S32 i = 0; i < findFilesResults.size(); ++i)
+      {
+         String str = findFilesResults[i];
+         if (str.compare(cwd, cwd.length(), String::NoCase) == 0)
+            str = str.substr(cwd.length());
+         findFilesResults[i] = str;
+      }
+   }
+
+   for (U32 i = 0; i < findFilesResults.size(); i++)
+   {
+      if (!findFilesResults[i].compare(fileName, 0, String::NoCase|String::Left))
+         return findFilesResults[i];
+   }
+
+   return "";
+}
+
 void AssetImporter::resetImportSession(bool hardClearSession)
 {
    importingAssets.clear();
@@ -660,9 +874,12 @@ void AssetImporter::resetImportSession(bool hardClearSession)
    }
    else
    {
-      for (U32 i = 0; i < originalImportingFiles.size(); i++)
+      Vector<Torque::Path> tempImportingFiles = originalImportingFiles;
+      originalImportingFiles.clear();
+
+      for (U32 i = 0; i < tempImportingFiles.size(); i++)
       {
-         addImportingFile(originalImportingFiles[i]);
+         addImportingFile(tempImportingFiles[i]);
       }
    }
 }
@@ -1045,6 +1262,98 @@ static bool enumDTSForImport(const char* shapePath, GuiTreeViewCtrl* tree)
    return true;
 }
 
+void AssetImportConfig::loadSISFile(Torque::Path filePath)
+{
+   String settingsFilePath = "Tools";
+   Settings* editorSettings;
+   //See if we can get our editor settings
+   if (Sim::findObject("EditorSettings", editorSettings))
+   {
+      settingsFilePath = editorSettings->value("defaultSettingsPath", "Tools");
+   }
+
+   String fileExtension = filePath.getExtension();
+   String settingsFile = settingsFilePath + "/" + fileExtension + ".sis";
+
+   FileObject* fileObj = new FileObject();
+   if (Platform::isFile(settingsFile))
+   {
+      if (!fileObj->readMemory(settingsFile.c_str()))
+      {
+         Con::errorf("AssetImporter::loadSISFile() - Error opening file to load settings: %s", settingsFile.c_str());
+         fileObj->deleteObject();
+         return;
+      }
+   }
+   else
+   {
+      return;
+   }
+
+   String headerLine = (const char*)fileObj->readLine();
+   if (headerLine.substr(0, 4).compare("SISV", 0U, String::NoCase) != 0)
+      return; //not a sis file?
+
+   while (!fileObj->isEOF())
+   {
+      const char* line = (const char*)fileObj->readLine();
+      String key = StringUnit::getUnit(line, 0, "\t");
+      String value = StringUnit::getUnit(line, 1, "\t");
+
+      if (key.compare("DoUpAxisOverride", 0U, String::NoCase) == 0)
+         DoUpAxisOverride = dAtob(value.c_str());
+      else if (key.compare("UpAxisOverride", 0U, String::NoCase) == 0)
+         UpAxisOverride = value.c_str();
+      else if (key.compare("DoScaleOverride", 0U, String::NoCase) == 0)
+         DoScaleOverride = dAtob(value.c_str());
+      else if (key.compare("ScaleOverride", 0U, String::NoCase) == 0)
+         ScaleOverride = dAtof(value.c_str());
+      else if (key.compare("IgnoreNodeScale", 0U, String::NoCase) == 0)
+         IgnoreNodeScale = dAtob(value.c_str());
+      else if (key.compare("AdjustCenter", 0U, String::NoCase) == 0)
+         AdjustCenter = dAtob(value.c_str());
+      else if (key.compare("AdjustFloor", 0U, String::NoCase) == 0)
+         AdjustFloor = dAtob(value.c_str());
+      else if (key.compare("CollapseSubmeshes", 0U, String::NoCase) == 0)
+         CollapseSubmeshes = dAtob(value.c_str());
+      else if (key.compare("LODType", 0U, String::NoCase) == 0)
+         LODType = value.c_str();
+      else if (key.compare("ImportedNodes", 0U, String::NoCase) == 0)
+         ImportedNodes = value.c_str();
+      else if (key.compare("IgnoreNodes", 0U, String::NoCase) == 0)
+         IgnoreNodes = value.c_str();
+      else if (key.compare("ImportMeshes", 0U, String::NoCase) == 0)
+         ImportMeshes = value.c_str();
+      else if (key.compare("IgnoreMeshes", 0U, String::NoCase) == 0)
+         IgnoreMeshes = value.c_str();
+      else if (key.compare("convertLeftHanded", 0U, String::NoCase) == 0)
+         convertLeftHanded = dAtob(value.c_str());
+      else if (key.compare("calcTangentSpace", 0U, String::NoCase) == 0)
+         calcTangentSpace = dAtob(value.c_str());
+      else if (key.compare("removeRedundantMats", 0U, String::NoCase) == 0)
+         removeRedundantMats = dAtob(value.c_str());
+      else if (key.compare("genUVCoords", 0U, String::NoCase) == 0)
+         genUVCoords = dAtob(value.c_str());
+      else if (key.compare("TransformUVs", 0U, String::NoCase) == 0)
+         TransformUVs = dAtob(value.c_str());
+      else if (key.compare("flipUVCoords", 0U, String::NoCase) == 0)
+         flipUVCoords = dAtob(value.c_str());
+      else if (key.compare("findInstances", 0U, String::NoCase) == 0)
+         findInstances = dAtob(value.c_str());
+      else if (key.compare("limitBoneWeights", 0U, String::NoCase) == 0)
+         limitBoneWeights = dAtob(value.c_str());
+      else if (key.compare("JoinIdenticalVerts", 0U, String::NoCase) == 0)
+         JoinIdenticalVerts = dAtob(value.c_str());
+      else if (key.compare("reverseWindingOrder", 0U, String::NoCase) == 0)
+         reverseWindingOrder = dAtob(value.c_str());
+      else if (key.compare("invertNormals", 0U, String::NoCase) == 0)
+         invertNormals = dAtob(value.c_str());
+   }
+
+   fileObj->close();
+   fileObj->deleteObject();
+}
+
 void AssetImporter::processImportAssets(AssetImportObject* assetItem)
 {
    if (assetItem == nullptr)
@@ -1159,7 +1468,7 @@ void AssetImporter::processImageAsset(AssetImportObject* assetItem)
    dSprintf(importLogBuffer, sizeof(importLogBuffer), "Preparing Image for Import: %s", assetItem->assetName.c_str());
    activityLog.push_back(importLogBuffer);
 
-   if ((activeImportConfig.GenerateMaterialOnImport && assetItem->parentAssetItem == nullptr)/* || assetItem->parentAssetItem != nullptr*/)
+   if ((activeImportConfig->GenerateMaterialOnImport && assetItem->parentAssetItem == nullptr)/* || assetItem->parentAssetItem != nullptr*/)
    {
       //find our suffix match, if any
       String noSuffixName = assetItem->assetName;
@@ -1188,7 +1497,7 @@ void AssetImporter::processImageAsset(AssetImportObject* assetItem)
       {
          if (!assetItem->filePath.isEmpty())
          {
-            materialAsset = addImportingAsset("MaterialAsset", "", nullptr, noSuffixName);
+            materialAsset = addImportingAsset("MaterialAsset", assetItem->filePath, nullptr, noSuffixName);
          }
       }
 
@@ -1219,9 +1528,9 @@ void AssetImporter::processImageAsset(AssetImportObject* assetItem)
       //if we need to append the diffuse suffix and indeed didn't find a suffix on the name, do that here
       if (suffixType.isEmpty())
       {
-         if (activeImportConfig.UseDiffuseSuffixOnOriginImage)
+         if (activeImportConfig->UseDiffuseSuffixOnOriginImage)
          {
-            String diffuseToken = StringUnit::getUnit(activeImportConfig.DiffuseTypeSuffixes, 0, ",;");
+            String diffuseToken = StringUnit::getUnit(activeImportConfig->DiffuseTypeSuffixes, 0, ",;");
             assetItem->assetName = assetItem->assetName + diffuseToken;
             assetItem->cleanAssetName = assetItem->assetName;
          }
@@ -1256,12 +1565,12 @@ void AssetImporter::processMaterialAsset(AssetImportObject* assetItem)
 
    assetItem->generatedAsset = true;
 
-   if (activeImportConfig.IgnoreMaterials.isNotEmpty())
+   if (activeImportConfig->IgnoreMaterials.isNotEmpty())
    {
-      U32 ignoredMatNameCount = StringUnit::getUnitCount(activeImportConfig.IgnoreMaterials, ".;");
+      U32 ignoredMatNameCount = StringUnit::getUnitCount(activeImportConfig->IgnoreMaterials, ".;");
       for (U32 i = 0; i < ignoredMatNameCount; i++)
       {
-         String ignoredName = StringUnit::getUnit(activeImportConfig.IgnoreMaterials, i, ".;");
+         String ignoredName = StringUnit::getUnit(activeImportConfig->IgnoreMaterials, i, ".;");
          if (FindMatch::isMatch(ignoredName.c_str(), assetName, false))
          {
             assetItem->skip = true;
@@ -1273,7 +1582,7 @@ void AssetImporter::processMaterialAsset(AssetImportObject* assetItem)
       }
    }
 
-   if (activeImportConfig.PopulateMaterialMaps)
+   if (activeImportConfig->PopulateMaterialMaps)
    {
       //If we're trying to populate the rest of our material maps, we need to go looking
       dSprintf(importLogBuffer, sizeof(importLogBuffer), "Attempting to Auto-Populate Material Maps");
@@ -1321,22 +1630,22 @@ void AssetImporter::processMaterialAsset(AssetImportObject* assetItem)
             switch (t)
             {
             case ImageAsset::Albedo:
-               suffixList = activeImportConfig.DiffuseTypeSuffixes;
+               suffixList = activeImportConfig->DiffuseTypeSuffixes;
                break;
             case ImageAsset::Normal:
-               suffixList = activeImportConfig.NormalTypeSuffixes;
+               suffixList = activeImportConfig->NormalTypeSuffixes;
                break;
             case ImageAsset::PBRConfig:
-               suffixList = activeImportConfig.PBRTypeSuffixes;
+               suffixList = activeImportConfig->PBRTypeSuffixes;
                break;
             case ImageAsset::Metalness:
-               suffixList = activeImportConfig.MetalnessTypeSuffixes;
+               suffixList = activeImportConfig->MetalnessTypeSuffixes;
                break;
             case ImageAsset::AO:
-               suffixList = activeImportConfig.AOTypeSuffixes;
+               suffixList = activeImportConfig->AOTypeSuffixes;
                break;
             case ImageAsset::Roughness:
-               suffixList = activeImportConfig.RoughnessTypeSuffixes;
+               suffixList = activeImportConfig->RoughnessTypeSuffixes;
                break;
             //TODO: Glow map lookup too
             }
@@ -1472,21 +1781,31 @@ void AssetImporter::processShapeAsset(AssetImportObject* assetItem)
    dSprintf(importLogBuffer, sizeof(importLogBuffer), "   Shape Info: Mesh Count: %i | Material Count: %i | Anim Count: %i", meshCount, animCount, materialCount);
    activityLog.push_back(importLogBuffer);
 
-   if (activeImportConfig.ImportMesh && meshCount > 0)
+   AssetImportConfig* cachedConfig = new AssetImportConfig();;
+   cachedConfig->registerObject();
+   activeImportConfig->CopyTo(cachedConfig);
+
+   if (!activeImportConfig->UseManualShapeConfigRules)
+   {
+      //Try and load a sis file if it exists for this format
+      activeImportConfig->loadSISFile(assetItem->filePath);
+   }
+
+   if (activeImportConfig->ImportMesh && meshCount > 0)
    {
 
    }
 
-   if (activeImportConfig.ImportAnimations && animCount > 0)
+   if (activeImportConfig->ImportAnimations && animCount > 0)
    {
       //If we have animations but no meshes, then this is a pure animation file so we can swap the asset type here
       if (meshCount == 0)
       {
-         //assetItem->assetType = "ShapeAnimation";
+         assetItem->assetType = "ShapeAnimationAsset";
       }
    }
 
-   if (activeImportConfig.ImportMaterials && materialCount > 0)
+   if (activeImportConfig->ImportMaterials && materialCount > 0)
    {
       S32 materialId = assetItem->shapeInfo->getChildItem(matItem);
       processShapeMaterialInfo(assetItem, materialId);
@@ -1498,6 +1817,10 @@ void AssetImporter::processShapeAsset(AssetImportObject* assetItem)
          materialId = assetItem->shapeInfo->getNextSiblingItem(materialId);
       }
    }
+
+   //restore the cached version just in case we loaded a sis file
+   cachedConfig->CopyTo(activeImportConfig);
+   cachedConfig->deleteObject();
 
    assetItem->processed = true;
 }
@@ -1511,6 +1834,21 @@ void AssetImporter::processShapeMaterialInfo(AssetImportObject* assetItem, S32 m
    {
       //So apparently we managed to name the material the same as the shape. So we'll tweak the name
       matAssetName += String("_Mat");
+   }
+
+   //Do a check so we don't import materials that are on our ignore list
+   if (activeImportConfig->IgnoreMaterials.isNotEmpty())
+   {
+      U32 ignoredMatNamesCount = StringUnit::getUnitCount(activeImportConfig->IgnoreMaterials, ",;");
+      for (U32 i = 0; i < ignoredMatNamesCount; i++)
+      {
+         const char* ignoreMatName = StringUnit::getUnit(activeImportConfig->IgnoreMaterials, i, ",;");
+         if (FindMatch::isMatch(ignoreMatName, matName.c_str(), false))
+         {
+            //If we have a match to one of our ignore names, just bail out here and skip the material wholesale
+            return;
+         }
+      }
    }
 
    String materialItemValue = assetItem->shapeInfo->getItemValue(materialItemId);
@@ -1556,7 +1894,7 @@ void AssetImporter::processShapeMaterialInfo(AssetImportObject* assetItem, S32 m
                   filePath = imgFileName;
             }
          }
-
+ 
          matAssetItem = addImportingAsset("MaterialAsset", shapePathBase + "/", assetItem, matName);
          AssetImportObject* imageAssetItem = addImportingAsset("ImageAsset", filePath, matAssetItem, "");
 
@@ -1579,6 +1917,95 @@ void AssetImporter::processShapeMaterialInfo(AssetImportObject* assetItem, S32 m
       matAssetItem->assetName = matAssetName;
 }
 
+void AssetImporter::processSoundAsset(AssetImportObject* assetItem)
+{
+   dSprintf(importLogBuffer, sizeof(importLogBuffer), "Preparing Image for Import: %s", assetItem->assetName.c_str());
+   activityLog.push_back(importLogBuffer);
+
+   if ((activeImportConfig->GenerateMaterialOnImport && assetItem->parentAssetItem == nullptr)/* || assetItem->parentAssetItem != nullptr*/)
+   {
+      //find our suffix match, if any
+      String noSuffixName = assetItem->assetName;
+      String suffixType;
+      String suffix = parseImageSuffixes(assetItem->assetName, &suffixType);
+      if (suffix.isNotEmpty())
+      {
+         assetItem->imageSuffixType = suffixType;
+         S32 suffixPos = assetItem->assetName.find(suffix, 0, String::NoCase | String::Left);
+         noSuffixName = assetItem->assetName.substr(0, suffixPos);
+      }
+
+      //We try to automatically populate materials under the naming convention: materialName: Rock, image maps: Rock_Albedo, Rock_Normal, etc
+
+      AssetImportObject* materialAsset = findImportingAssetByName(noSuffixName);
+      if (materialAsset != nullptr && materialAsset->assetType != String("MaterialAsset"))
+      {
+         //We may have a situation where an asset matches the no-suffix name, but it's not a material asset. Ignore this
+         //asset item for now
+
+         materialAsset = nullptr;
+      }
+
+      //If we didn't find a matching material asset in our current items, we'll make one now
+      if (materialAsset == nullptr)
+      {
+         if (!assetItem->filePath.isEmpty())
+         {
+            materialAsset = addImportingAsset("MaterialAsset", assetItem->filePath, nullptr, noSuffixName);
+         }
+      }
+
+      //Not that, one way or another, we have the generated material asset, lets move on to associating our image with it
+      if (materialAsset != nullptr && materialAsset != assetItem->parentAssetItem)
+      {
+         if (assetItem->parentAssetItem != nullptr)
+         {
+            //If the image had an existing parent, it gets removed from that parent's child item list
+            assetItem->parentAssetItem->childAssetItems.remove(assetItem);
+         }
+         else
+         {
+            //If it didn't have one, we're going to pull it from the importingAssets list
+            importingAssets.remove(assetItem);
+         }
+
+         //Now we can add it to the correct material asset
+         materialAsset->childAssetItems.push_back(assetItem);
+         assetItem->parentAssetItem = materialAsset;
+
+         assetHeirarchyChanged = true;
+      }
+
+      //Now to do some cleverness. If we're generating a material, we can parse like assets being imported(similar filenames) but different suffixes
+      //If we find these, we'll just populate into the original's material
+
+      //if we need to append the diffuse suffix and indeed didn't find a suffix on the name, do that here
+      if (suffixType.isEmpty())
+      {
+         if (activeImportConfig->UseDiffuseSuffixOnOriginImage)
+         {
+            String diffuseToken = StringUnit::getUnit(activeImportConfig->DiffuseTypeSuffixes, 0, ",;");
+            assetItem->assetName = assetItem->assetName + diffuseToken;
+            assetItem->cleanAssetName = assetItem->assetName;
+         }
+         else
+         {
+            //We need to ensure that our image asset doesn't match the same name as the material asset, so if we're not trying to force the diffuse suffix
+            //we'll give it a generic one
+            if (materialAsset && materialAsset->assetName.compare(assetItem->assetName) == 0)
+            {
+               assetItem->assetName = assetItem->assetName + "_image";
+               assetItem->cleanAssetName = assetItem->assetName;
+            }
+         }
+
+         //Assume for abledo if it has no suffix matches
+         assetItem->imageSuffixType = "Albedo";
+      }
+   }
+
+   assetItem->processed = true;
+}
 //
 // Validation
 //
@@ -1656,7 +2083,7 @@ void AssetImporter::validateAsset(AssetImportObject* assetItem)
 
    if (assetItem->status == String("Warning"))
    {
-      if (activeImportConfig.WarningsAsErrors)
+      if (activeImportConfig->WarningsAsErrors)
       {
          assetItem->status = "Error";
 
@@ -1791,7 +2218,7 @@ void AssetImporter::resolveAssetItemIssues(AssetImportObject* assetItem)
       String humanReadableReason = assetItem->statusType == String("DuplicateImportAsset") ? "Importing asset was duplicate of another importing asset" : "Importing asset was duplicate of an existing asset";
 
       //get the config value for duplicateAutoResolution
-      if (activeImportConfig.DuplicatAutoResolution == String("AutoPrune"))
+      if (activeImportConfig->DuplicatAutoResolution == String("AutoPrune"))
       {
          //delete the item
          deleteImportingAsset(assetItem);
@@ -1802,7 +2229,7 @@ void AssetImporter::resolveAssetItemIssues(AssetImportObject* assetItem)
 
          importIssues = false;
       }
-      else if (activeImportConfig.DuplicatAutoResolution == String("AutoRename"))
+      else if (activeImportConfig->DuplicatAutoResolution == String("AutoRename"))
       {
          //Set trailing number
          String renamedAssetName = assetItem->assetName;
@@ -1820,6 +2247,10 @@ void AssetImporter::resolveAssetItemIssues(AssetImportObject* assetItem)
          //Whatever status we had prior is no longer relevent, so reset the status
          resetAssetValidationStatus(assetItem);
          importIssues = false;
+      }
+      else if (activeImportConfig->DuplicatAutoResolution == String("UseExisting"))
+      {
+
       }
    }
    else if (assetItem->statusType == String("MissingFile"))
@@ -1869,7 +2300,11 @@ StringTableEntry AssetImporter::autoImportFile(Torque::Path filePath)
    targetPath = filePath.getPath();
 
    //use a default import config
-   activeImportConfig = AssetImportConfig();
+   if (activeImportConfig == nullptr)
+   {
+      activeImportConfig = new AssetImportConfig();
+      activeImportConfig->registerObject();
+   }
 
    bool foundConfig = false;
    Settings* editorSettings;
@@ -1883,7 +2318,7 @@ StringTableEntry AssetImporter::autoImportFile(Torque::Path filePath)
       if (Sim::findObject("AssetImportSettings", importConfigs))
       {
          //Now load the editor setting-deigned config!
-         activeImportConfig.loadImportConfig(importConfigs, defaultImportConfig.c_str());
+         activeImportConfig->loadImportConfig(importConfigs, defaultImportConfig.c_str());
       }
    }
 
@@ -1951,8 +2386,10 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
          {
             assetPath = importShapeAsset(importingAssets[i]);
          }
-         /*else if (importingAssets[i]->assetType == String("SoundAsset"))
-            assetPath = SoundAsset::importAsset(importingAssets[i]);*/
+         else if (importingAssets[i]->assetType == String("SoundAsset"))
+         {
+            assetPath = importSoundAsset(importingAssets[i]);
+         }
          else if (importingAssets[i]->assetType == String("MaterialAsset"))
          {
             assetPath = importMaterialAsset(importingAssets[i]);
@@ -2029,8 +2466,10 @@ void AssetImporter::importAssets(AssetImportObject* assetItem)
          {
             assetPath = importShapeAsset(childItem);
          }
-         /*else if (childItem->assetType == String("SoundAsset"))
-            assetPath = SoundAsset::importAsset(childItem);*/
+         else if (childItem->assetType == String("SoundAsset"))
+         {
+            assetPath = importSoundAsset(childItem);
+         }
          else if (childItem->assetType == String("MaterialAsset"))
          {
             assetPath = importMaterialAsset(childItem);
@@ -2206,7 +2645,7 @@ Torque::Path AssetImporter::importMaterialAsset(AssetImportObject* assetItem)
    }
 
    //build the PBRConfig file if we're flagged to and have valid image maps
-   if (activeImportConfig.CreatePBRConfig)
+   if (activeImportConfig->CreatePBRConfig)
    {
       AssetImportObject* pbrConfigMap = nullptr;
       AssetImportObject* roughnessMap = nullptr;
@@ -2250,8 +2689,16 @@ Torque::Path AssetImporter::importMaterialAsset(AssetImportObject* assetItem)
    //There's 2 ways to do this. If we're in-place importing an existing asset, we can see if the definition existed already, like in an old
    //materials.cs file. if it does, we can just find the object by name, and save it out to our new file
    //If not, we'll just generate one
-   /*SimObject* matObj;
-   if (Sim::findObject(assetName, matObj))
+   Material* existingMat = MATMGR->getMaterialDefinitionByName(assetName);
+
+   //It's also possible that, for legacy models, the material hooks in via the material's mapTo field, and the material name is something completely different
+   //So we'll check for that as well if we didn't find it by name up above
+   if (existingMat == nullptr)
+   {
+      existingMat = MATMGR->getMaterialDefinitionByMapTo(assetName);
+   }
+
+   if (existingMat)
    {
       for (U32 i = 0; i < assetItem->childAssetItems.size(); i++)
       {
@@ -2295,15 +2742,16 @@ Torque::Path AssetImporter::importMaterialAsset(AssetImportObject* assetItem)
          assetFieldName = mapFieldName + "Asset[0]";
          mapFieldName += "[0]";
 
-         matObj->writeField(mapFieldName.c_str(), path.c_str());
+         existingMat->writeField(mapFieldName.c_str(), path.c_str());
 
          String targetAsset = targetModuleId + ":" + childItem->assetName;
 
-         matObj->writeField(assetFieldName.c_str(), targetAsset.c_str());
+         existingMat->writeField(assetFieldName.c_str(), targetAsset.c_str());
       }
-      matObj->save(scriptPath.c_str());
-   }*/
-   if (file->openForWrite(scriptPath.c_str()))
+      existingMat->save(scriptPath.c_str());
+   }
+   //However, if we didn't find any existing material, then we'll want to go ahead and just write out a new one
+   else if (file->openForWrite(scriptPath.c_str()))
    {
       file->writeLine((U8*)"//--- OBJECT WRITE BEGIN ---");
 
@@ -2314,6 +2762,7 @@ Torque::Path AssetImporter::importMaterialAsset(AssetImportObject* assetItem)
       dSprintf(lineBuffer, 1024, "   mapTo=\"%s\";", assetName);
       file->writeLine((U8*)lineBuffer);
 
+      bool hasRoughness = false;
       for (U32 i = 0; i < assetItem->childAssetItems.size(); i++)
       {
          AssetImportObject* childItem = assetItem->childAssetItems[i];
@@ -2350,17 +2799,24 @@ Torque::Path AssetImporter::importMaterialAsset(AssetImportObject* assetItem)
          else if (imageType == ImageAsset::ImageTypes::Roughness)
          {
             mapFieldName = "RoughnessMap";
+            hasRoughness = true;
          }
 
          assetFieldName = mapFieldName + "Asset";
          mapFieldName += "[0]";
 
-         String path = childItem->filePath.getFullFileName();
-         dSprintf(lineBuffer, 1024, "   %s = \"%s\";", mapFieldName.c_str(), path.c_str());
-         file->writeLine((U8*)lineBuffer);
+         //String path = childItem->filePath.getFullFileName();
+         //dSprintf(lineBuffer, 1024, "   %s = \"%s\";", mapFieldName.c_str(), path.c_str());
+         //file->writeLine((U8*)lineBuffer);
 
          dSprintf(lineBuffer, 1024, "   %s = \"%s:%s\";", assetFieldName.c_str(), targetModuleId.c_str(), childItem->assetName.c_str());
          file->writeLine((U8*)lineBuffer);
+      }
+
+      if (hasRoughness)
+      {
+         file->writeLine((U8*)"   invertSmoothness = true;");
+         
       }
 
       file->writeLine((U8*)"};");
@@ -2408,6 +2864,16 @@ Torque::Path AssetImporter::importShapeAsset(AssetImportObject* assetItem)
 
    newAsset->setAssetName(assetName);
    newAsset->setShapeFile(shapeFileName.c_str());
+
+   AssetImportConfig* cachedConfig = new AssetImportConfig();;
+   cachedConfig->registerObject();
+   activeImportConfig->CopyTo(cachedConfig);
+
+   if (!activeImportConfig->UseManualShapeConfigRules)
+   {
+      //Try and load a sis file if it exists for this format
+      activeImportConfig->loadSISFile(assetItem->filePath);
+   }
 
    //If it's not a re-import, check that the file isn't being in-place imported. If it isn't, store off the original
    //file path for reimporting support later
@@ -2513,38 +2979,38 @@ Torque::Path AssetImporter::importShapeAsset(AssetImportObject* assetItem)
       //now we write the import config logic into the constructor itself to ensure we load like we wanted it to
       String neverImportMats;
 
-      if (activeImportConfig.IgnoreMaterials.isNotEmpty())
+      if (activeImportConfig->IgnoreMaterials.isNotEmpty())
       {
-         U32 ignoredMatNamesCount = StringUnit::getUnitCount(activeImportConfig.IgnoreMaterials, ",;");
+         U32 ignoredMatNamesCount = StringUnit::getUnitCount(activeImportConfig->IgnoreMaterials, ",;");
          for (U32 i = 0; i < ignoredMatNamesCount; i++)
          {
             if (i == 0)
-               neverImportMats = StringUnit::getUnit(activeImportConfig.IgnoreMaterials, i, ",;");
+               neverImportMats = StringUnit::getUnit(activeImportConfig->IgnoreMaterials, i, ",;");
             else
-               neverImportMats += String("\t") + StringUnit::getUnit(activeImportConfig.IgnoreMaterials, i, ",;");
+               neverImportMats += String("\t") + StringUnit::getUnit(activeImportConfig->IgnoreMaterials, i, ",;");
          }
       }
 
-      if (activeImportConfig.DoUpAxisOverride)
+      if (activeImportConfig->DoUpAxisOverride)
       {
          S32 upAxis = domUpAxisType::UPAXISTYPE_Z_UP;
-         if (activeImportConfig.UpAxisOverride.compare("X_AXIS") == 0)
+         if (activeImportConfig->UpAxisOverride.compare("X_AXIS") == 0)
          {
             upAxis = domUpAxisType::UPAXISTYPE_X_UP;
          }
-         else if (activeImportConfig.UpAxisOverride.compare("Y_AXIS") == 0)
+         else if (activeImportConfig->UpAxisOverride.compare("Y_AXIS") == 0)
          {
             upAxis = domUpAxisType::UPAXISTYPE_Y_UP;
          }
-         else if (activeImportConfig.UpAxisOverride.compare("Z_AXIS") == 0)
+         else if (activeImportConfig->UpAxisOverride.compare("Z_AXIS") == 0)
          {
             upAxis = domUpAxisType::UPAXISTYPE_Z_UP;
          }
          constructor->mOptions.upAxis = (domUpAxisType)upAxis;
       }
 
-      if (activeImportConfig.DoScaleOverride)
-         constructor->mOptions.unit = activeImportConfig.ScaleOverride;
+      if (activeImportConfig->DoScaleOverride)
+         constructor->mOptions.unit = activeImportConfig->ScaleOverride;
       else
          constructor->mOptions.unit = -1;
 
@@ -2556,45 +3022,45 @@ Torque::Path AssetImporter::importShapeAsset(AssetImportObject* assetItem)
       };
 
       S32 lodType = ColladaUtils::ImportOptions::eLodType::TrailingNumber;
-      if (activeImportConfig.LODType.compare("TrailingNumber") == 0)
+      if (activeImportConfig->LODType.compare("TrailingNumber") == 0)
          lodType = ColladaUtils::ImportOptions::eLodType::TrailingNumber;
-      else if (activeImportConfig.LODType.compare("SingleSize") == 0)
+      else if (activeImportConfig->LODType.compare("SingleSize") == 0)
          lodType = ColladaUtils::ImportOptions::eLodType::SingleSize;
-      else if (activeImportConfig.LODType.compare("DetectDTS") == 0)
+      else if (activeImportConfig->LODType.compare("DetectDTS") == 0)
          lodType = ColladaUtils::ImportOptions::eLodType::DetectDTS;
       constructor->mOptions.lodType = (ColladaUtils::ImportOptions::eLodType)lodType;
 
-      constructor->mOptions.singleDetailSize = activeImportConfig.convertLeftHanded;
-      constructor->mOptions.alwaysImport = activeImportConfig.ImportedNodes;
-      constructor->mOptions.neverImport = activeImportConfig.IgnoreNodes;
-      constructor->mOptions.alwaysImportMesh = activeImportConfig.ImportMeshes;
-      constructor->mOptions.neverImportMesh = activeImportConfig.IgnoreMeshes;
-      constructor->mOptions.ignoreNodeScale = activeImportConfig.IgnoreNodeScale;
-      constructor->mOptions.adjustCenter = activeImportConfig.AdjustCenter;
-      constructor->mOptions.adjustFloor = activeImportConfig.AdjustFloor;
+      constructor->mOptions.singleDetailSize = activeImportConfig->convertLeftHanded;
+      constructor->mOptions.alwaysImport = activeImportConfig->ImportedNodes;
+      constructor->mOptions.neverImport = activeImportConfig->IgnoreNodes;
+      constructor->mOptions.alwaysImportMesh = activeImportConfig->ImportMeshes;
+      constructor->mOptions.neverImportMesh = activeImportConfig->IgnoreMeshes;
+      constructor->mOptions.ignoreNodeScale = activeImportConfig->IgnoreNodeScale;
+      constructor->mOptions.adjustCenter = activeImportConfig->AdjustCenter;
+      constructor->mOptions.adjustFloor = activeImportConfig->AdjustFloor;
 
-      constructor->mOptions.convertLeftHanded = activeImportConfig.convertLeftHanded;
-      constructor->mOptions.calcTangentSpace = activeImportConfig.calcTangentSpace;
-      constructor->mOptions.genUVCoords = activeImportConfig.genUVCoords;
-      constructor->mOptions.flipUVCoords = activeImportConfig.flipUVCoords;
-      constructor->mOptions.findInstances = activeImportConfig.findInstances;
-      constructor->mOptions.limitBoneWeights = activeImportConfig.limitBoneWeights;
-      constructor->mOptions.joinIdenticalVerts = activeImportConfig.JoinIdenticalVerts;
-      constructor->mOptions.reverseWindingOrder = activeImportConfig.reverseWindingOrder;
-      constructor->mOptions.invertNormals = activeImportConfig.invertNormals;
-      constructor->mOptions.removeRedundantMats = activeImportConfig.removeRedundantMats;
+      constructor->mOptions.convertLeftHanded = activeImportConfig->convertLeftHanded;
+      constructor->mOptions.calcTangentSpace = activeImportConfig->calcTangentSpace;
+      constructor->mOptions.genUVCoords = activeImportConfig->genUVCoords;
+      constructor->mOptions.flipUVCoords = activeImportConfig->flipUVCoords;
+      constructor->mOptions.findInstances = activeImportConfig->findInstances;
+      constructor->mOptions.limitBoneWeights = activeImportConfig->limitBoneWeights;
+      constructor->mOptions.joinIdenticalVerts = activeImportConfig->JoinIdenticalVerts;
+      constructor->mOptions.reverseWindingOrder = activeImportConfig->reverseWindingOrder;
+      constructor->mOptions.invertNormals = activeImportConfig->invertNormals;
+      constructor->mOptions.removeRedundantMats = activeImportConfig->removeRedundantMats;
 
       S32 animTimingType;
-      if (activeImportConfig.animTiming.compare("FrameCount") == 0)
+      if (activeImportConfig->animTiming.compare("FrameCount") == 0)
          animTimingType = ColladaUtils::ImportOptions::eAnimTimingType::FrameCount;
-      else if (activeImportConfig.animTiming.compare("Seconds") == 0)
+      else if (activeImportConfig->animTiming.compare("Seconds") == 0)
          animTimingType = ColladaUtils::ImportOptions::eAnimTimingType::Seconds;
-      else// (activeImportConfig.animTiming.compare("Milliseconds") == 0)
+      else// (activeImportConfig->animTiming.compare("Milliseconds") == 0)
          animTimingType = ColladaUtils::ImportOptions::eAnimTimingType::Milliseconds;
 
       constructor->mOptions.animTiming = (ColladaUtils::ImportOptions::eAnimTimingType)animTimingType;
 
-      constructor->mOptions.animFPS = activeImportConfig.animFPS;
+      constructor->mOptions.animFPS = activeImportConfig->animFPS;
 
       constructor->mOptions.neverImportMat = neverImportMats;
 
@@ -2607,6 +3073,122 @@ Torque::Path AssetImporter::importShapeAsset(AssetImportObject* assetItem)
       {
          dSprintf(importLogBuffer, sizeof(importLogBuffer), "Finished creating shape constructor file to %s", constructorPath.c_str());
          activityLog.push_back(importLogBuffer);
+      }
+   }
+
+   //restore the cached version just in case we loaded a sis file
+   cachedConfig->CopyTo(activeImportConfig);
+   cachedConfig->deleteObject();
+
+   return tamlPath;
+}
+
+Torque::Path AssetImporter::importSoundAsset(AssetImportObject* assetItem)
+{
+   dSprintf(importLogBuffer, sizeof(importLogBuffer), "Beginning importing of Sound Asset: %s", assetItem->assetName.c_str());
+   activityLog.push_back(importLogBuffer);
+
+   SoundAsset* newAsset = new SoundAsset();
+   newAsset->registerObject();
+
+   StringTableEntry assetName = StringTable->insert(assetItem->assetName.c_str());
+
+   String imageFileName = assetItem->filePath.getFileName() + "." + assetItem->filePath.getExtension();
+   String assetPath = targetPath + "/" + imageFileName;
+   String tamlPath = targetPath + "/" + assetName + ".asset.taml";
+   String originalPath = assetItem->filePath.getFullPath().c_str();
+
+   char qualifiedFromFile[2048];
+   char qualifiedToFile[2048];
+
+   Platform::makeFullPathName(originalPath.c_str(), qualifiedFromFile, sizeof(qualifiedFromFile));
+   Platform::makeFullPathName(assetPath.c_str(), qualifiedToFile, sizeof(qualifiedToFile));
+
+   newAsset->setAssetName(assetName);
+   newAsset->setSoundFile(imageFileName.c_str());
+
+   //If it's not a re-import, check that the file isn't being in-place imported. If it isn't, store off the original
+   //file path for reimporting support later
+   if (!isReimport && dStrcmp(qualifiedFromFile, qualifiedToFile))
+   {
+      newAsset->setDataField(StringTable->insert("originalFilePath"), nullptr, qualifiedFromFile);
+   }
+
+   Taml tamlWriter;
+   bool importSuccessful = tamlWriter.write(newAsset, tamlPath.c_str());
+
+   if (!importSuccessful)
+   {
+      dSprintf(importLogBuffer, sizeof(importLogBuffer), "Error! Unable to write asset taml file %s", tamlPath.c_str());
+      activityLog.push_back(importLogBuffer);
+      return "";
+   }
+
+   if (!isReimport)
+   {
+      bool isInPlace = !dStrcmp(qualifiedFromFile, qualifiedToFile);
+
+      if (!isInPlace && !dPathCopy(qualifiedFromFile, qualifiedToFile, !isReimport))
+      {
+         dSprintf(importLogBuffer, sizeof(importLogBuffer), "Error! Unable to copy file %s", assetItem->filePath.getFullPath().c_str());
+         activityLog.push_back(importLogBuffer);
+         return "";
+      }
+   }
+
+   return tamlPath;
+}
+
+Torque::Path AssetImporter::importShapeAnimationAsset(AssetImportObject* assetItem)
+{
+   dSprintf(importLogBuffer, sizeof(importLogBuffer), "Beginning importing of Shape Animation Asset: %s", assetItem->assetName.c_str());
+   activityLog.push_back(importLogBuffer);
+
+   ShapeAnimationAsset* newAsset = new ShapeAnimationAsset();
+   newAsset->registerObject();
+
+   StringTableEntry assetName = StringTable->insert(assetItem->assetName.c_str());
+
+   String imageFileName = assetItem->filePath.getFileName() + "." + assetItem->filePath.getExtension();
+   String assetPath = targetPath + "/" + imageFileName;
+   String tamlPath = targetPath + "/" + assetName + ".asset.taml";
+   String originalPath = assetItem->filePath.getFullPath().c_str();
+
+   char qualifiedFromFile[2048];
+   char qualifiedToFile[2048];
+
+   Platform::makeFullPathName(originalPath.c_str(), qualifiedFromFile, sizeof(qualifiedFromFile));
+   Platform::makeFullPathName(assetPath.c_str(), qualifiedToFile, sizeof(qualifiedToFile));
+
+   newAsset->setAssetName(assetName);
+   newAsset->setAnimationFile(imageFileName.c_str());
+
+   //If it's not a re-import, check that the file isn't being in-place imported. If it isn't, store off the original
+   //file path for reimporting support later
+   if (!isReimport && dStrcmp(qualifiedFromFile, qualifiedToFile))
+   {
+      newAsset->setDataField(StringTable->insert("originalFilePath"), nullptr, qualifiedFromFile);
+   }
+
+   Taml tamlWriter;
+   bool importSuccessful = tamlWriter.write(newAsset, tamlPath.c_str());
+
+   if (!importSuccessful)
+   {
+      dSprintf(importLogBuffer, sizeof(importLogBuffer), "Error! Unable to write asset taml file %s", tamlPath.c_str());
+      activityLog.push_back(importLogBuffer);
+      return "";
+   }
+
+   if (!isReimport)
+   {
+      bool isInPlace = !dStrcmp(qualifiedFromFile, qualifiedToFile);
+
+      if (!isInPlace && !dPathCopy(qualifiedFromFile, qualifiedToFile, !isReimport))
+      {
+         dSprintf(importLogBuffer, sizeof(importLogBuffer), "Error! Unable to copy file %s", assetItem->filePath.getFullPath().c_str());
+         activityLog.push_back(importLogBuffer);
+         return "";
       }
    }
 

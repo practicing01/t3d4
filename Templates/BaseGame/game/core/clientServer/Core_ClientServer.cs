@@ -60,17 +60,11 @@ function Core_ClientServer::onDestroy( %this )
 }
 
 //-----------------------------------------------------------------------------
-function StartGame( %mission, %hostingType )
+function StartGame( %levelAsset, %hostingType )
 {
-   if( %mission $= "" )
+   if( %levelAsset $= "" )
    {
-<<<<<<< HEAD
-      %id = CL_levelList.getSelectedId();
-      %mission = getField(CL_levelList.getRowTextById(%id), 1);
-      //error("Cannot start a level with no level selected!");
-=======
-      %mission = $selectedLevelFile;
->>>>>>> unifiedRepo/Preview4_0
+      %levelAsset = $selectedLevelAsset;
    }
 
    if (%hostingType !$= "")
@@ -94,7 +88,7 @@ function StartGame( %mission, %hostingType )
       Canvas.repaint();
    }
 
-   createAndConnectToLocalServer( %serverType, %mission );
+   createAndConnectToLocalServer( %serverType, %levelAsset );
 }
 
 function JoinGame( %serverIndex )

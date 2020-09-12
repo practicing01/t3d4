@@ -35,6 +35,8 @@ class Scene : public NetObject, public virtual ITickable
 
    bool mIsDirty;
 
+   bool mEditPostFX;
+
    StringTableEntry mGameModeName;
 
 protected:
@@ -47,6 +49,8 @@ public:
    ~Scene();
 
    static void initPersistFields();
+
+   static bool _editPostEffects(void* object, const char* index, const char* data);
 
    virtual bool onAdd();
    virtual void onRemove();
@@ -62,6 +66,13 @@ public:
    void addDynamicObject(SceneObject* object);
    void removeDynamicObject(SceneObject* object);
 
+   void dumpUtilizedAssets();
+
+   StringTableEntry getOriginatingFile();
+   StringTableEntry getLevelAsset();
+
+   bool saveScene(StringTableEntry fileName);
+
    //
    //Networking
    U32 packUpdate(NetConnection *conn, U32 mask, BitStream *stream);
@@ -69,6 +80,8 @@ public:
 
    //
    Vector<SceneObject*> getObjectsByClass(String className, bool checkSubscenes);
+
+   void getUtilizedAssetsFromSceneObject(SimObject* object, Vector<StringTableEntry>* usedAssetsList);
 
    template <class T>
    Vector<T*> getObjectsByClass(bool checkSubscenes);

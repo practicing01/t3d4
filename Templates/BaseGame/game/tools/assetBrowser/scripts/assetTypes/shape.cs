@@ -247,13 +247,19 @@ function AssetBrowser::buildShapeAssetPreview(%this, %assetDef, %previewData)
    %previewData.assetName = %assetDef.assetName;
    %previewData.assetPath = %assetDef.fileName;
 
-   %previewData.previewImage = %assetDef.fileName;
+   %previewData.previewImage = "tools/assetBrowser/art/genericAssetIcon";//%assetDef.fileName;
    
    %previewData.assetFriendlyName = %assetDef.assetName;
    %previewData.assetDesc = %assetDef.description;
    %previewData.tooltip = "Asset Name: " @ %assetDef.assetName @ "\n" @ 
                            "Asset Type: Shape Asset\n" @ 
-                           "Asset Definition ID: " @  %assetDef;
+                           "Asset Definition ID: " @  %assetDef @ "\n" @ 
+                           "Shape File path: " @ %assetDef.getShapeFile();
+                           
+   if(%this.selectMode)
+      %previewData.doubleClickCommand = "AssetBrowser.selectAsset( AssetBrowser.selectedAsset );";
+   else
+      %previewData.doubleClickCommand = "AssetBrowser.editAsset( "@%assetDef@" );";
 }
 
 function AssetBrowser::onShapeAssetEditorDropped(%this, %assetDef, %position)
