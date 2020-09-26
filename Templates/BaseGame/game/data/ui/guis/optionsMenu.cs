@@ -46,408 +46,6 @@
 //headbob
 //FOV
 
-function OptionsMenu::onWake(%this)
-{
-    OptionsMain.hidden = false;
-    ControlsMenu.hidden = true;
-    GraphicsMenu.hidden = true;
-    AudioMenu.hidden = true;
-    CameraMenu.hidden = true;
-    ScreenBrightnessMenu.hidden = true;
-    
-    OptionsOKButton.hidden = false;
-    OptionsCancelButton.hidden = false;
-    OptionsDefaultsButton.hidden = false;
-    
-    OptionsMenu.tamlReader = new Taml();
-    
-    OptionsSettingStack.clear();
-   
-   %array = OptionsSettingStack;
-   %array.clear();
-   
-   %keyboardMenuBtn = new GuiButtonCtrl(){
-      text = "Keyboard and Mouse";
-      profile = GuiMenuButtonProfile;
-      extent = %array.extent.x SPC "35";
-      command="ControlsMenu::loadSettings();";
-   };
-   
-   %controllerMenuBtn = new GuiButtonCtrl(){
-      text = "Controller";
-      profile = GuiMenuButtonProfile;
-      extent = %array.extent.x SPC "35";
-      command="DisplayMenu::loadSettings();";
-   };
-   
-   %displayMenuBtn = new GuiButtonCtrl(){
-      text = "Display";
-      profile = GuiMenuButtonProfile;
-      extent = %array.extent.x SPC "35";
-      command="DisplayMenu::loadSettings();";
-   };
-   
-   %graphicsMenuBtn = new GuiButtonCtrl(){
-      text = "Graphics";
-      profile = GuiMenuButtonProfile;
-      extent = %array.extent.x SPC "35";
-      command="GraphicsMenu::loadSettings();";
-   };
-   
-   %audioMenuBtn = new GuiButtonCtrl(){
-      text = "Audio";
-      profile = GuiMenuButtonProfile;
-      extent = %array.extent.x SPC "35";
-      command="AudioMenu::loadSettings();";
-   };
-   
-   %gameplayMenuBtn = new GuiButtonCtrl(){
-      text = "Gameplay";
-      profile = GuiMenuButtonProfile;
-      extent = %array.extent.x SPC "35";
-      command="GameplayMenu::loadSettings();";
-   };
-   
-   %array.add(%keyboardMenuBtn);
-   //%array.add(%controllerMenuBtn);
-   %array.add(%displayMenuBtn);
-   %array.add(%graphicsMenuBtn);
-   %array.add(%audioMenuBtn);
-   //%array.add(%gameplayMenuBtn);
-   
-   //We programmatically set up our settings here so we can do some prepwork on the fields/controls
-   //Presets
-   /*OptionsMenu.addSettingOption(%array, "Preset", "High", ShadowQualityList, $pref::Video::Resolution);
-   
-   //AA
-   OptionsMenu.addSettingOption(%array, "AntiAliasing", "FXAA 4x", ShadowQualityList, $pref::Video::Resolution);
-   
-   //Lighting
-   OptionsMenu.addSettingOption(%array, "Shadow Quality", "High", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Shadow Caching", "On", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Soft Shadows", "High", ShadowQualityList, $pref::Video::Resolution);
-   
-   //Models and Textures
-   OptionsMenu.addSettingOption(%array, "Level of Detail", "High", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Texture Quality", "High", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Material Quality", "High", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Terrain Detail", "High", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Decal Lifetime", "High", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Ground Clutter Density", "High", ShadowQualityList, $pref::Video::Resolution);
-   
-   //Effects
-   OptionsMenu.addSettingOption(%array, "HDR", "On", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Parallax", "On", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Ambient Occlusion", "On", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Light Rays", "On", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Depth of Field", "On", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Vignetting", "On", ShadowQualityList, $pref::Video::Resolution);
-   OptionsMenu.addSettingOption(%array, "Water Reflections", "On", ShadowQualityList, $pref::Video::Resolution);
-   
-   OptionsMenu.addSettingOption(%array, "Anisotropic Filtering", "16x", ShadowQualityList, $pref::Video::Resolution);*/
-   
-   if(!isObject(GraphicsSettingsCache))
-   {
-      new ArrayObject(GraphicsSettingsCache){};
-   }
-   
-   GraphicsSettingsCache.empty();
-}
-
-function OptionsMenuOKButton::onClick(%this)
-{
-    //save the settings and then back out
-    eval(OptionsMenu.currentMenu@"::apply();");
-    OptionsMenu.backOut();
-}
-
-function OptionsMenuCancelButton::onClick(%this)
-{
-    //we don't save, so just back out of the menu 
-    OptionsMenu.backOut();
-}
-
-function OptionsMenuDefaultsButton::onClick(%this)
-{
-    //we don't save, so go straight to backing out of the menu    
-    eval(OptionsMenu.currentMenu@"::applyDefaults();");
-    OptionsMenu.backOut();
-}
-
-function ControlsSettingsMenuButton::onClick(%this)
-{
-    OptionsMain.hidden = true;
-    ControlsMenu.hidden = false;
-    
-    KeyboardControlPanel.hidden = false;
-    MouseControlPanel.hidden = true;
-    
-    ControlsMenu.reload();
-}
-
-function GraphicsSettingsMenuButton::onClick(%this)
-{
-    OptionsMain.hidden = true;
-    GraphicsMenu.hidden = false;
-}
-
-function CameraSettingsMenuButton::onClick(%this)
-{
-    OptionsMain.hidden = true;
-    CameraMenu.hidden = false;
-    
-    CameraMenu.loadSettings();
-}
-
-function AudioSettingsMenuButton::onClick(%this)
-{
-    OptionsMain.hidden = true;
-    AudioMenu.hidden = false;
-    AudioMenu.loadSettings();
-}
-
-function ScreenBrSettingsMenuButton::onClick(%this)
-{
-    OptionsMain.hidden = true;
-    ScreenBrightnessMenu.hidden = false;
-}
-
-function OptionsMenu::backOut(%this)
-{
-   //save the settings and then back out
-   if(OptionsMain.hidden == false)
-   {
-      //we're not in a specific menu, so we're actually exiting
-      Canvas.popDialog(OptionsMenu);
-
-      if(isObject(OptionsMenu.returnGui) && OptionsMenu.returnGui.isMethod("onReturnTo"))
-         OptionsMenu.returnGui.onReturnTo();
-   }
-   else
-   {
-      OptionsMain.hidden = false;
-      ControlsMenu.hidden = true;
-      GraphicsMenu.hidden = true;
-      CameraMenu.hidden = true;
-      AudioMenu.hidden = true;
-      ScreenBrightnessMenu.hidden = true;
-   }
-}
-
-function OptionsMenu::addSettingOption(%this, %arrayTarget, %optionName, %defaultValue, %settingsGroup, %targetVar)
-{
-    %option = TAMLRead("data/ui/guis/graphicsMenuSettingsCtrl.taml");
-    
-    if(!isMethod(%settingsGroup, "get") || !isMethod(%settingsGroup, "set"))
-    {
-      error("OptionsMenu::addSettingsOption - unrecognized settings group of: " @ %settingsGroup @ ". Did not have proper getter/setter");
-      return "";
-    }
-    
-    %option-->nameText.text = %optionName;
-    %option-->SettingText.text = eval(%settingsGroup@"::"@"get();");
-    %option.qualitySettingGroup = %settingsGroup;
-    %option.targetVar = %targetVar;
-
-    %arrayTarget.add(%option);
-
-    return %option;
-}
-
-function OptionsMenu::addSliderOption(%this, %arrayTarget, %optionName, %variable, %range, %ticks, %value, %class)
-{
-    %option = TAMLRead("data/ui/guis/graphicsMenuSettingsSlider.taml");
-    
-    %option-->nameText.text = %optionName;
-
-    %arrayTarget.add(%option);
-    
-    if(%range !$= "")
-    {
-       %option-->slider.range = %range;
-    }
-    
-    if(%ticks !$= "")
-    {
-       %option-->slider.ticks = %ticks;
-    }
-    
-    if(%variable !$= "")
-    {
-       %option-->slider.variable = %variable;
-    }
-    
-    if(%value !$= "")
-    {
-       %option-->slider.setValue(%value);
-    }
-    
-    if(%class !$= "")
-    {
-       %option-->slider.className = %class;
-    }
-    else
-        %option-->slider.className = OptionsMenuSlider;
-        
-    %option-->slider.snap = true;
-    
-    %option-->slider.onValueSet();
-
-    return %option;
-}
-
-function OptionsMenuSlider::onMouseDragged(%this)
-{
-   %this.onValueSet();
-}
-
-function OptionsMenuSlider::onValueSet(%this)
-{
-   %this.getParent().getParent()-->valueText.setText(mRound(%this.value * 10));  
-}
-
-function FOVOptionSlider::onMouseDragged(%this)
-{
-   %this.onValueSet();
-}
-
-function FOVOptionSlider::onValueSet(%this)
-{
-   %this.getParent().getParent()-->valueText.setText(mRound(%this.value));
-}
-
-//
-function OptionsMenuForwardSetting::onClick(%this)
-{
-   //we need to advance through the value list, unless it's the end, in which case we do nothing  
-   echo("Move forward in the list!");
-   
-   %settingCtrl = %this.getParent();
-   %settingsList = eval(%settingCtrl.qualitySettingGroup@"::getList();");
-   %settingsListCount = getTokenCount(%settingsList, ",");
-   %currentSetting = %settingCtrl-->SettingText.text;
-   
-   //We consider 'custom' to be the defacto end of the list. The only way back is to go lower
-   if(%currentSetting $= "Custom")
-      return;
-      
-   %currentSettingIdx = OptionsMenu.getCurrentIndexFromSetting(%settingCtrl);
-   
-   if(%currentSettingIdx != %settingsListCount-1)
-   {
-      %currentSettingIdx++;
-      
-      //advance by one
-      %newSetting = getToken(%settingsList, ",", %currentSettingIdx);
-      eval(%settingCtrl.qualitySettingGroup@"::set(\""@%newSetting@"\");");
-      %settingCtrl-->SettingText.setText( %newSetting );
-      
-      if(%currentSettingIdx == %settingsListCount)
-      {
-         //if we hit the end of the list, disable the forward button  
-      }
-   }
-}
-
-function OptionsMenuBackSetting::onClick(%this)
-{
-   //we need to advance through the value list, unless it's the end, in which case we do nothing  
-   echo("Move back in the list!");
-   
-   %settingCtrl = %this.getParent();
-   %settingsList = eval(%settingCtrl.qualitySettingGroup@"::getList();");
-   %settingsListCount = getTokenCount(%settingsList, ",");
-   %currentSetting = %settingCtrl-->SettingText.text;
-   
-   %currentSettingIdx = OptionsMenu.getCurrentIndexFromSetting(%settingCtrl);
-   
-   if(%currentSettingIdx != 0)
-   {
-      %currentSettingIdx--;
-      
-      //advance by one
-      %newSetting = getToken(%settingsList, ",", %currentSettingIdx);
-      eval(%settingCtrl.qualitySettingGroup@"::set(\""@%newSetting@"\");");
-      %settingCtrl-->SettingText.setText( %newSetting );
-      
-      if(%currentSettingIdx == %settingsListCount)
-      {
-         //if we hit the end of the list, disable the forward button  
-      }
-   }
-}
-
-function OptionsMenu::getCurrentIndexFromSetting(%this, %settingCtrl)
-{
-   %settingsList = eval(%settingCtrl.qualitySettingGroup@"::getList();");
-   %settingsListCount = getTokenCount(%settingsList, ",");
-   %currentSetting = %settingCtrl-->SettingText.text;
-   
-   for ( %i=0; %i < %settingsListCount; %i++ )
-   {
-      %level = getToken(%settingsList, ",", %i);
-      
-      //find our current level
-      if(%currentSetting $= %level)
-      {
-         return %i;
-      }
-   }
-   
-   return -1;
-}
-
-// =============================================================================
-// CAMERA MENU
-// =============================================================================
-function CameraMenu::onWake(%this)
-{
-    
-}
-
-function CameraMenu::apply(%this)
-{
-   setFOV($pref::Player::defaultFov);  
-}
-
-function CameraMenu::loadSettings(%this)
-{
-   CameraMenuOptionsArray.clear();
-   
-   %option = OptionsMenu.addSettingOption(CameraMenuOptionsArray);
-   %option-->nameText.setText("Invert Vertical");
-   %option.qualitySettingGroup = InvertVerticalMouse;
-   %option.init();
-   
-   %option = OptionsMenu.addSliderOption(CameraMenuOptionsArray, "0.1 1", 8, "$pref::Input::VertMouseSensitivity", $pref::Input::VertMouseSensitivity);
-   %option-->nameText.setText("Vertical Sensitivity");
-   
-   %option = OptionsMenu.addSliderOption(CameraMenuOptionsArray, "0.1 1", 8, "$pref::Input::HorzMouseSensitivity", $pref::Input::HorzMouseSensitivity);
-   %option-->nameText.setText("Horizontal Sensitivity");
-   
-   %option = OptionsMenu.addSliderOption(CameraMenuOptionsArray, "0.1 1", 8, "$pref::Input::ZoomVertMouseSensitivity", $pref::Input::ZoomVertMouseSensitivity);
-   %option-->nameText.setText("Zoom Vertical Sensitivity");
-
-   %option = OptionsMenu.addSliderOption(CameraMenuOptionsArray, "0.1 1", 8, "$pref::Input::ZoomHorzMouseSensitivity", $pref::Input::ZoomHorzMouseSensitivity);
-   %option-->nameText.setText("Zoom Horizontal Sensitivity");
-   
-   %option = OptionsMenu.addSliderOption(CameraMenuOptionsArray, "65 90", 25, "$pref::Player::defaultFov", $pref::Player::defaultFov, FOVOptionSlider);
-   %option-->nameText.setText("Field of View");
-   
-   CameraMenuOptionsArray.refresh();
-}
-
-function CameraMenuOKButton::onClick(%this)
-{
-   //save the settings and then back out
-    CameraMenu.apply();
-    OptionsMenu.backOut();
-}
-
-function CameraMenuDefaultsButton::onClick(%this)
-{
-   
-=======
 function OptionsMenuSettingsList::onAdd(%this)
 {
 }
@@ -598,13 +196,44 @@ function OptionsMenu::populateDisplaySettingsList(%this)
    OptionName.setText("");
    OptionDescription.setText("");
    
-   %resolutionList = getScreenResolutionList();
    OptionsMenuSettingsList.addOptionRow("Display API", "D3D11\tOpenGL", false, "", -1, -30, true, "The display API used for rendering.", $pref::Video::displayDevice);
-   OptionsMenuSettingsList.addOptionRow("Resolution", %resolutionList, false, "", -1, -30, true, "Resolution of the game window", _makePrettyResString( $pref::Video::mode ));
-   OptionsMenuSettingsList.addOptionRow("Fullscreen", "No\tYes", false, "", -1, -30, true, "", convertBoolToYesNo($pref::Video::FullScreen));
-   OptionsMenuSettingsList.addOptionRow("VSync", "No\tYes", false, "", -1, -30, true, "", convertBoolToYesNo(!$pref::Video::disableVerticalSync));
    
-   OptionsMenuSettingsList.addOptionRow("Refresh Rate", "30\t60\t75", false, "", -1, -30, true, "", $pref::Video::RefreshRate);
+   %numDevices = Canvas.getMonitorCount();
+   %devicesList = "";
+   for(%i = 0; %i < %numDevices; %i++)
+   {
+      %device = (%i+1) @ " - " @ Canvas.getMonitorName(%i);
+      if(%i==0)
+         %devicesList = %device;
+      else
+         %devicesList = %devicesList @ "\t" @ %device;
+   }
+   
+   %selectedDevice = getField(%devicesList, $pref::Video::deviceId);
+   OptionsMenuSettingsList.addOptionRow("Display Device", %devicesList, false, "onDisplayModeChange", -1, -30, true, "The display devices the window should be on.", %selectedDevice);
+      
+   if (%numDevices > 1)
+      OptionsMenuSettingsList.setRowEnabled(1, true);
+   else
+      OptionsMenuSettingsList.setRowEnabled(1, false);
+   
+   %mode = getField($Video::ModeTags, $pref::Video::deviceMode);
+   OptionsMenuSettingsList.addOptionRow("Window Mode", $Video::ModeTags, false, "onDisplayModeChange", -1, -30, true, "", %mode);
+   
+   %resolutionList = getScreenResolutionList($pref::Video::deviceId, $pref::Video::deviceMode);
+   OptionsMenuSettingsList.addOptionRow("Resolution", %resolutionList, false, "onDisplayResChange", -1, -30, true, "Resolution of the game window", _makePrettyResString( $pref::Video::mode ));
+   
+   //If they're doing borderless, the window resolution must match the display resolution
+   if(%mode !$= "Borderless")
+      OptionsMenuSettingsList.setRowEnabled(3, true);
+   else
+      OptionsMenuSettingsList.setRowEnabled(3, false);
+   
+   OptionsMenuSettingsList.addOptionRow("VSync", "No\tYes", false, "", -1, -30, true, "", convertBoolToYesNo(!$pref::Video::disableVerticalSync));
+
+
+   %refreshList = getScreenRefreshList($pref::Video::mode);
+   OptionsMenuSettingsList.addOptionRow("Refresh Rate", %refreshList, false, "", -1, -30, true, "", $pref::Video::RefreshRate);
    
    //move to gameplay tab
    OptionsMenuSettingsList.addSliderRow("Field of View", 75, 5, "65 100", "", -1, -30);
@@ -617,20 +246,8 @@ function OptionsMenu::populateDisplaySettingsList(%this)
 
 function OptionsMenu::applyDisplaySettings(%this)
 {
-   //%newAdapter    = GraphicsMenuDriver.getText();
-	//%numAdapters   = GFXInit::getAdapterCount();
 	%newDevice     = OptionsMenuSettingsList.getCurrentOption(0);
 							
-	/*for( %i = 0; %i < %numAdapters; %i ++ )
-	{
-	   %targetAdapter = GFXInit::getAdapterName( %i );
-	   if( GFXInit::getAdapterName( %i ) $= %newDevice )
-	   {
-	      %newDevice = GFXInit::getAdapterType( %i );
-	      break;
-	   }
-	}*/
-	   
    // Change the device.
    if ( %newDevice !$= $pref::Video::displayDevice )
    {
@@ -726,9 +343,16 @@ function OptionsMenu::applyGraphicsSettings(%this)
                                  
       $pref::Video::defaultAnisotropy = %level;
    }
-   
-   updateDisplaySettings();
-   
+
+   %newFSAA = OptionsMenuSettingsList.getCurrentOption(9);
+   if (%newFSAA $= "off")
+      %newFSAA = 0;
+   if (%newFSAA !$= $pref::Video::AA)
+   {
+      $pref::Video::AA = %newFSAA;
+      configureCanvas();
+   }
+
    echo("Exporting client prefs");
    %prefPath = getPrefpath();
    export("$pref::*", %prefPath @ "/clientPrefs.cs", false);
@@ -737,37 +361,58 @@ function OptionsMenu::applyGraphicsSettings(%this)
 function updateDisplaySettings()
 {
    //Update the display settings now
-   $pref::Video::Resolution = getWord(OptionsMenuSettingsList.getCurrentOption(1), 0) SPC getWord(OptionsMenuSettingsList.getCurrentOption(1), 2);
-   %newBpp        = 32; // ... its not 1997 anymore.
-	$pref::Video::FullScreen = convertOptionToBool(OptionsMenuSettingsList.getCurrentOption(2)) == 0 ? "false" : "true";
-	$pref::Video::RefreshRate    = OptionsMenuSettingsList.getCurrentOption(4);
-	%newVsync = !convertOptionToBool(OptionsMenuSettingsList.getCurrentOption(3));	
-	//$pref::Video::AA = GraphicsMenuAA.getSelected();
-	
-   /*if ( %newFullScreen $= "false" )
-	{
-      // If we're in windowed mode switch the fullscreen check
-      // if the resolution is bigger than the desktop.
-      %deskRes    = getDesktopResolution();      
-      %deskResX   = getWord(%deskRes, $WORD::RES_X);
-      %deskResY   = getWord(%deskRes, $WORD::RES_Y);
-	   if (  getWord( %newRes, $WORD::RES_X ) > %deskResX || 
-	         getWord( %newRes, $WORD::RES_Y ) > %deskResY )
-      {
-         $pref::Video::FullScreen = "true";
-         GraphicsMenuFullScreen.setStateOn( true );
-      }
-	}*/
+   %deviceName = OptionsMenuSettingsList.getCurrentOption(1);
+   %newDeviceID = getWord(%deviceName, 0) - 1;
+   %deviceModeName = OptionsMenuSettingsList.getCurrentOption(2);
+   %newDeviceMode = 0;
+   foreach$(%modeName in $Video::ModeTags)
+   {
+      if (%deviceModeName $= %modeName)
+         break;
+      else
+         %newDeviceMode++;
+   }
 
+   %newRes = getWord(OptionsMenuSettingsList.getCurrentOption(3), 0) SPC getWord(OptionsMenuSettingsList.getCurrentOption(3), 2);
+   %newBpp = 32; // ... its not 1997 anymore.
+	%newFullScreen = %deviceModeName $= "Fullscreen" ? true : false;
+	%newRefresh    = OptionsMenuSettingsList.getCurrentOption(5);
+	%newVsync = !convertOptionToBool(OptionsMenuSettingsList.getCurrentOption(4));	
+	%newFSAA = $pref::Video::AA;
+	
    // Build the final mode string.
-	%newMode = $pref::Video::Resolution SPC $pref::Video::FullScreen SPC %newBpp SPC $pref::Video::RefreshRate SPC $pref::Video::AA;
+	%newMode = %newRes SPC %newFullScreen SPC %newBpp SPC %newRefresh SPC %newFSAA;
 	
    // Change the video mode.   
-   if (  %newMode !$= $pref::Video::mode || 
-         %newVsync != $pref::Video::disableVerticalSync )
+   if (  %newMode !$= $pref::Video::mode || %newDeviceID != $pref::Video::deviceId ||
+         %newVsync != $pref::Video::disableVerticalSync || %newDeviceMode != $pref::Video::deviceMode)
    {
+      if ( %testNeedApply )
+         return true;
+
+      //****Edge Case Hack
+      // If we're in fullscreen mode and switching to a different monitor at the
+      // same resolution and maintaining fullscreen, GFX...WindowTarget::resetMode()
+      // will early-out because there is no "mode change" and the monitor change
+      // will not get applied. Instead of modifying platform code, we're going to
+      // move onto the new monitor in borderless and immediately switch to FS.
+      if (%newFullScreen && $pref::Video::FullScreen &&
+         ($pref::Video::Resolution $= %newRes) && ($pref::Video::deviceId != %newDeviceID))
+      {
+         $pref::Video::deviceId = %newDeviceID;
+         $pref::Video::deviceMode = $Video::ModeBorderless;
+         %tmpModeStr = Canvas.getMonitorMode(%newDeviceID, 0);
+         Canvas.setVideoMode(%tmpModeStr.x, %tmpModeStr.y, false, 32, getWord(%tmpModeStr, $WORD::REFRESH), %aa);
+      }
+
       $pref::Video::mode = %newMode;
-      $pref::Video::disableVerticalSync = %newVsync;      
+      $pref::Video::disableVerticalSync = %newVsync;
+      $pref::Video::deviceId = %newDeviceID;
+      $pref::Video::deviceMode = %newDeviceMode;
+      $pref::Video::Resolution = %newRes;
+      $pref::Video::FullScreen = %newFullScreen;
+      $pref::Video::RefreshRate = %newRefresh;
+      $pref::Video::AA = %newFSAA;
       configureCanvas();
    }
 }
@@ -939,5 +584,80 @@ function convertBoolToOnOff(%val)
       return "On";
    else 
       return "Off";
+<<<<<<< HEAD
+>>>>>>> unifiedRepo/Preview4_0
+=======
+}
+
+function onDisplayModeChange(%val)
+{  
+   // The display device (monitor) or screen mode has changed. Refill the
+   // resolution list with only available options.
+   %deviceName = OptionsMenuSettingsList.getCurrentOption(1);
+   %newDeviceID = getWord(%deviceName, 0) - 1;
+   %deviceModeName = OptionsMenuSettingsList.getCurrentOption(2);
+   %newDeviceMode = 0;
+   foreach$(%modeName in $Video::ModeTags)
+   {
+      if (%deviceModeName $= %modeName)
+         break;
+      else
+         %newDeviceMode++;
+   }
+   %resolutionList = getScreenResolutionList(%newDeviceID, %newDeviceMode);
+
+   // If we're switching to borderless, default to monitor res
+   if (%newDeviceMode == $Video::ModeBorderless)
+      %newRes = getWords(Canvas.getMonitorRect(%newDeviceID), 2);
+   else
+   {  // Otherwise, if our old resolution is still in the list, attempt to reset it.
+      %oldRes = getWord(OptionsMenuSettingsList.getCurrentOption(3), 0) SPC getWord(OptionsMenuSettingsList.getCurrentOption(3), 2);
+
+      %found = false;
+      %retCount = getFieldCount(%resolutionList);
+      for (%i = 0; %i < %retCount; %i++)
+      {
+         %existingEntry = getField(%resolutionList, %i);
+         if ((%existingEntry.x $= %oldRes.x) && (%existingEntry.z $= %oldRes.y))
+         {
+            %found = true;
+            %newRes = %oldRes;
+            break;  
+         }
+      }
+
+      if (!%found)
+      {  // Pick the best resoltion available for the device and mode
+         %newRes = Canvas.getBestCanvasRes(%newDeviceID, %newDeviceMode);
+      }
+   }
+   
+   if(%newDeviceMode == $Video::ModeBorderless)
+      OptionsMenuSettingsList.setRowEnabled(3, false);
+   else
+      OptionsMenuSettingsList.setRowEnabled(3, true);
+      
+   OptionsMenuSettingsList.setOptions(3, %resolutionList);
+   OptionsMenuSettingsList.selectOption(3, _makePrettyResString(%newRes));
+}
+
+function onDisplayResChange(%val)
+{  // The resolution has changed. Setup refresh rates available at this res.
+   %newRes = getWord(OptionsMenuSettingsList.getCurrentOption(3), 0) SPC getWord(OptionsMenuSettingsList.getCurrentOption(3), 2);
+   %refreshList = getScreenRefreshList(%newRes);
+
+   // If our old rate still exists, select it
+   %oldRate = OptionsMenuSettingsList.getCurrentOption(5);
+   %retCount = getFieldCount(%refreshList);
+   for (%i = 0; %i < %retCount; %i++)
+   {
+      %existingEntry = getField(%refreshList, %i);
+      %newRate = %existingEntry;
+      if (%existingEntry $= %oldRate)
+         break;  
+   }
+
+   OptionsMenuSettingsList.setOptions(5, %refreshList);
+   OptionsMenuSettingsList.selectOption(5, %newRate);
 >>>>>>> unifiedRepo/Preview4_0
 }
