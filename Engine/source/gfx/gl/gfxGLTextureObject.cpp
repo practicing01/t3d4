@@ -175,6 +175,7 @@ bool GFXGLTextureObject::copyToBmp(GBitmap * bmp)
 
    FrameAllocatorMarker mem;
    
+   PROFILE_START(GFXGLTextureObject_copyToBmp_pixCopy);
 
    U32 mipLevels = getMipLevels();
    for (U32 mip = 0; mip < mipLevels; mip++)
@@ -186,7 +187,7 @@ bool GFXGLTextureObject::copyToBmp(GBitmap * bmp)
 
       glGetTexImage(mBinding, mip, GFXGLTextureFormat[mFormat], GFXGLTextureType[mFormat], orig);
 
-      PROFILE_START(GFXGLTextureObject_copyToBmp_pixCopy);
+      //PROFILE_START(GFXGLTextureObject_copyToBmp_pixCopy);
       if (mFormat == GFXFormatR16G16B16A16F)
       {
          dMemcpy(dest, orig, srcPixelCount * srcBytesPerPixel);
