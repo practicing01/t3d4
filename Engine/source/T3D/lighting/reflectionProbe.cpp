@@ -132,7 +132,7 @@ ReflectionProbe::ReflectionProbe() :
    mProbeInfo = nullptr;
 
    mPrefilterSize = 64;
-   mPrefilterMipLevels = mLog2(F32(mPrefilterSize));
+   mPrefilterMipLevels = mLog2(F32(mPrefilterSize))+1;
    mPrefilterMap = nullptr;
    mIrridianceMap = nullptr;
 
@@ -259,11 +259,11 @@ bool ReflectionProbe::_setReflectionMode(void *object, const char *index, const 
 {
    ReflectionProbe* probe = reinterpret_cast<ReflectionProbe*>(object);
 
-   if (!dStrcmp(data,"Static Cubemap"))
+   if (!String::compare(data,"Static Cubemap"))
    {
       probe->mReflectionModeType = StaticCubemap;
    }
-   else if (!dStrcmp(data, "Baked Cubemap"))
+   else if (!String::compare(data, "Baked Cubemap"))
    {
       //Clear our cubemap if we changed it to be baked, just for cleanliness
       probe->mReflectionModeType = BakedCubemap;
@@ -645,7 +645,7 @@ void ReflectionProbe::processDynamicCubemap()
    if (mCubeReflector.getCubemap())
    {
       U32 resolution = Con::getIntVariable("$pref::ReflectionProbes::BakeResolution", 64);
-      U32 prefilterMipLevels = mLog2(F32(resolution));
+      U32 prefilterMipLevels = mLog2(F32(resolution))+1;
 
       //Prep it with whatever resolution we've dictated for our bake
       mIrridianceMap->mCubemap->initDynamic(resolution, PROBEMGR->PROBE_FORMAT);
@@ -700,7 +700,7 @@ void ReflectionProbe::processBakedCubemap()
       mIrridianceMap->updateFaces();
    }
 
-   if (mIrridianceMap == nullptr || mIrridianceMap->mCubemap.isNull())
+   if (mIrridianceMap == nullptr || !mIrridianceMap->mCubemap->isInitialized())
    {
       Con::errorf("ReflectionProbe::processDynamicCubemap() - Unable to load baked irradiance map at %s", getIrradianceMapPath().c_str());
       return;
@@ -713,7 +713,7 @@ void ReflectionProbe::processBakedCubemap()
       mPrefilterMap->updateFaces();
    }
 
-   if (mPrefilterMap == nullptr || mPrefilterMap->mCubemap.isNull())
+   if (mPrefilterMap == nullptr || !mPrefilterMap->mCubemap->isInitialized())
    {
       Con::errorf("ReflectionProbe::processDynamicCubemap() - Unable to load baked prefilter map at %s", getPrefilterMapPath().c_str());
       return;
