@@ -588,9 +588,6 @@ function convertBoolToOnOff(%val)
       return "On";
    else 
       return "Off";
-<<<<<<< HEAD
->>>>>>> unifiedRepo/Preview4_0
-=======
 }
 
 function onDisplayModeChange(%val)
@@ -663,5 +660,4 @@ function onDisplayResChange(%val)
 
    OptionsMenuSettingsList.setOptions(5, %refreshList);
    OptionsMenuSettingsList.selectOption(5, %newRate);
->>>>>>> unifiedRepo/Preview4_0
 }
