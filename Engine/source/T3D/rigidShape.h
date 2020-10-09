@@ -39,7 +39,6 @@ class ParticleEmitter;
 class ParticleEmitterData;
 class ClippedPolyList;
 class RigidShape;
-
 class RigidShapeData : public ShapeBaseData
 {
    typedef ShapeBaseData Parent;
