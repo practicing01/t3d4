@@ -121,7 +121,7 @@ Material::Material()
       mRoughness[i] = 1.0f;
       mMetalness[i] = 0.0f;
 
-	   mIsSRGb[i] = true;
+	   mIsSRGb[i] = false;
       mInvertRoughness[i] = false;
 
       mRoughnessChan[i] = 0;
@@ -306,8 +306,6 @@ void Material::initPersistFields()
       addField("metalChan", TypeF32, Offset(mMetalChan, Material), MAX_STAGES,
          "The input channel metalness maps use.");
 
-      addField("glowMul", TypeF32, Offset(mGlowMul, Material), MAX_STAGES,
-         "The input channel metalness maps use.");
       addField("glow", TypeBool, Offset(mGlow, Material), MAX_STAGES,
          "Enables rendering as glowing.");
 
@@ -534,7 +532,7 @@ bool Material::onAdd()
       matSet->addObject( (SimObject*)this );
 
    // save the current script path for texture lookup later
-   const String  scriptFile = Con::getVariable("$Con::File");  // current script file - local materials.cs
+   const String  scriptFile = Con::getVariable("$Con::File");  // current script file - local materials.tscript
 
    String::SizeType  slash = scriptFile.find( '/', scriptFile.length(), String::Right );
    if ( slash != String::NPos )
@@ -595,8 +593,10 @@ void Material::updateTimeBasedParams()
       for (U32 i = 0; i < MAX_STAGES; i++)
       {
          mScrollOffset[i] += mScrollDir[i] * mScrollSpeed[i] * dt;
-         mRotPos[i] += mRotSpeed[i] * dt;
-         mWavePos[i] += mWaveFreq[i] * dt;
+         mScrollOffset[i].x = mWrapF(mScrollOffset[i].x, 0.0, 1.0);
+         mScrollOffset[i].y = mWrapF(mScrollOffset[i].y, 0.0, 1.0);
+         mRotPos[i] = mWrapF((mRotPos[i] + (mRotSpeed[i] * dt)), 0.0, 360.0);
+         mWavePos[i] = mWrapF((mWavePos[i] + (mWaveFreq[i] * dt)), 0.0, 1.0);
       }
       mLastUpdateTime = lastTime;
    }

@@ -95,6 +95,7 @@ class SimSet : public SimObject, public TamlChildren
    public:
 
       typedef SimObject Parent;
+      typedef SimObject Children;
 
       enum SetModification
       {
@@ -332,7 +333,7 @@ void SimSet::findObjectByType( Vector<T*> &foundObjects )
       curSet = dynamic_cast<SimSet*>( *itr );
 
       // If child object is a set, call recursively into it.
-      if ( curSet )
+      if ( curSet && curSet->size() != 0)
          curSet->findObjectByType( foundObjects ); 
 
       // Add this child object if appropriate.

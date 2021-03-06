@@ -1,0 +1,8 @@
+<MaterialAsset
+    canSave="true"
+    canSaveDynamicFields="true"
+    AssetName="NatureBrown"
+    scriptFile="@assetFile=NatureBrown.tscript"
+    materialDefinitionName="NatureBrown"
+    imageMap0="@Asset=Prototyping:NatureBrown_ALBEDO"
+    originalFilePath="D:/Gamedev/art/Blockout/NatureBrown.png" />

@@ -101,22 +101,22 @@ public:
    /// <summary>
    /// A list of what nodes should be guaranteed to be imported if found in the model file. Separated by either , or ;
    /// </summary>
-   String ImportedNodes;
+   String AlwaysImportedNodes;
 
    /// <summary>
    /// A list of what nodes should be guaranteed to not be imported if found in the model file. Separated by either , or ;
    /// </summary>
-   String IgnoreNodes;
+   String AlwaysIgnoreNodes;
 
    /// <summary>
    /// A list of what mesh objects should be guaranteed to be imported if found in the model file. Separated by either , or ;
    /// </summary>
-   String ImportMeshes;
+   String AlwaysImportMeshes;
 
    /// <summary>
    /// A list of what mesh objects should be guaranteed to not be imported if found in the model file. Separated by either , or ;
    /// </summary>
-   String IgnoreMeshes;
+   String AlwaysIgnoreMeshes;
 
    //Assimp/Collada params
    /// <summary>
@@ -850,6 +850,12 @@ public:
          activeImportConfig = importConfig;
    }
 
+   /// <summary>
+   /// Resets the active import config to whatever the default is. Either a clean slate if one isn't defined
+   /// or loading one if defined via the editor config
+   /// </summary>
+   void resetImportConfig();
+
    //
    static String getTrueFilename(const String& fileName);
 
@@ -884,4 +890,8 @@ public:
 
       return qualifiedFilePath;
    }
+
+   //
+   void setTargetModuleId(const String& moduleId) { targetModuleId = moduleId; }
+   const String& getTargetModuleId() { return targetModuleId; }
 };

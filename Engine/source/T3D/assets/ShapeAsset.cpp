@@ -46,6 +46,10 @@
 #include "platform/profiler.h"
 #include "T3D/assets/assetImporter.h"
 
+#ifdef TORQUE_TOOLS
+#include "ts/tsLastDetail.h"
+#endif
+
 //-----------------------------------------------------------------------------
 
 IMPLEMENT_CONOBJECT(ShapeAsset);
@@ -113,12 +117,22 @@ ConsoleSetType(TypeShapeAssetId)
 
 //-----------------------------------------------------------------------------
 
+const String ShapeAsset::mErrCodeStrings[] =
+{
+   "TooManyVerts",
+   "TooManyBones",
+   "MissingAnimatons",
+   "UnKnown"
+};
+//-----------------------------------------------------------------------------
+
 ShapeAsset::ShapeAsset()
 {
    mFileName = StringTable->EmptyString();
    mConstructorFileName = StringTable->EmptyString();
    mFilePath = StringTable->EmptyString();
    mConstructorFilePath = StringTable->EmptyString();
+   mLoadedState = AssetErrCode::NotLoaded;
 }
 
 //-----------------------------------------------------------------------------
@@ -264,7 +278,8 @@ bool ShapeAsset::loadShape()
 
    if (!mShape)
    {
-      Con::errorf("StaticMesh::updateShape : failed to load shape file!");
+      Con::errorf("ShapeAsset::loadShape : failed to load shape file %s (%s)!", getAssetName(), mFilePath);
+      mLoadedState = BadFileReference;
       return false; //if it failed to load, bail out
    }
 
@@ -280,8 +295,10 @@ bool ShapeAsset::loadShape()
 
       if (!mShape->addSequence(srcPath, srcName, srcName,
          mAnimationAssets[i]->getStartFrame(), mAnimationAssets[i]->getEndFrame(), mAnimationAssets[i]->getPadRotation(), mAnimationAssets[i]->getPadTransforms()))
+      {
+         mLoadedState = MissingAnimatons;
          return false;
-
+      }
       if (mAnimationAssets[i]->isBlend())
          hasBlends = true;
    }
@@ -300,14 +317,20 @@ bool ShapeAsset::loadShape()
             if (blendAnimAsset.isNull())
             {
                Con::errorf("ShapeAsset::initializeAsset - Unable to acquire reference animation asset %s for asset %s to blend!", mAnimationAssets[i]->getBlendAnimationName(), mAnimationAssets[i]->getAssetName());
-               return false;
+               {
+                  mLoadedState = MissingAnimatons;
+                  return false;
+               }
             }
 
             String refAnimName = blendAnimAsset->getAnimationName();
             if (!mShape->setSequenceBlend(mAnimationAssets[i]->getAnimationName(), true, blendAnimAsset->getAnimationName(), mAnimationAssets[i]->getBlendFrame()))
             {
                Con::errorf("ShapeAnimationAsset::initializeAsset - Unable to set animation clip %s for asset %s to blend!", mAnimationAssets[i]->getAnimationName(), mAnimationAssets[i]->getAssetName());
-               return false;
+               {
+                  mLoadedState = MissingAnimatons;
+                  return false;
+               }
             }
          }
       }
@@ -315,6 +338,7 @@ bool ShapeAsset::loadShape()
 
    mChangeSignal.trigger();
 
+   mLoadedState = Ok;
    return true;
 }
 
@@ -410,21 +434,28 @@ StringTableEntry ShapeAsset::getAssetIdByFilename(StringTableEntry fileName)
    return shapeAssetId;
 }
 
-bool ShapeAsset::getAssetById(StringTableEntry assetId, AssetPtr<ShapeAsset>* shapeAsset)
+U32 ShapeAsset::getAssetById(StringTableEntry assetId, AssetPtr<ShapeAsset>* shapeAsset)
 {
    (*shapeAsset) = assetId;
 
-   if (!shapeAsset->isNull())
-      return true;
+   if ((*shapeAsset))
+      return (*shapeAsset)->mLoadedState;
 
-   //Didn't work, so have us fall back to a placeholder asset
-   StringTableEntry noShapeId = StringTable->insert("Core_Rendering:noshape");
-   shapeAsset->setAssetId(noShapeId);
+   if (shapeAsset->notNull())
+   {
+      //Didn't work, so have us fall back to a placeholder asset
+      StringTableEntry noShapeId = StringTable->insert("Core_Rendering:noshape");
+      shapeAsset->setAssetId(noShapeId);
 
-   if (!shapeAsset->isNull())
-      return true;
+      //handle noshape not being loaded itself
+      if ((*shapeAsset)->mLoadedState == BadFileReference)
+         return AssetErrCode::Failed;
 
-   return false;
+      (*shapeAsset)->mLoadedState = AssetErrCode::UsingFallback;
+      return AssetErrCode::UsingFallback;
+   }
+
+   return AssetErrCode::Failed;
 }
 //------------------------------------------------------------------------------
 
@@ -478,6 +509,29 @@ ShapeAnimationAsset* ShapeAsset::getAnimation(S32 index)
    return nullptr;
 }
 
+#ifdef TORQUE_TOOLS
+const char* ShapeAsset::generateCachedPreviewImage(S32 resolution)
+{
+   if (!mShape)
+      return "";
+
+   TSLastDetail* dt = new TSLastDetail(mShape,
+      mFilePath,
+      1,
+      0,
+      0,
+      false,
+      0,
+      resolution);
+
+   dt->update();
+
+   delete dt;
+
+   return mFilePath;
+}
+#endif
+
 DefineEngineMethod(ShapeAsset, getMaterialCount, S32, (), ,
    "Gets the number of materials for this shape asset.\n"
    "@return Material count.\n")
@@ -499,10 +553,26 @@ DefineEngineMethod(ShapeAsset, getAnimation, ShapeAnimationAsset*, (S32 index), 
 {
    return object->getAnimation(index);
 }
+
+DefineEngineMethod(ShapeAsset, getShapeFile, const char*, (), ,
+   "Creates a new script asset using the targetFilePath.\n"
+   "@return The bool result of calling exec")
+{
+   return object->getShapeFilePath();
+}
+
+#ifdef TORQUE_TOOLS
+DefineEngineMethod(ShapeAsset, generateCachedPreviewImage, const char*, (S32 resolution), (256), "")
+{
+   return object->generateCachedPreviewImage(resolution);
+}
+#endif
+
 //-----------------------------------------------------------------------------
 // GuiInspectorTypeAssetId
 //-----------------------------------------------------------------------------
 
+#ifdef TORQUE_TOOLS
 IMPLEMENT_CONOBJECT(GuiInspectorTypeShapeAssetPtr);
 
 ConsoleDocClass(GuiInspectorTypeShapeAssetPtr,
@@ -596,9 +666,4 @@ void GuiInspectorTypeShapeAssetId::consoleInit()
    ConsoleBaseType::getType(TypeShapeAssetId)->setInspectorFieldType("GuiInspectorTypeShapeAssetId");
 }
 
-DefineEngineMethod(ShapeAsset, getShapeFile, const char*, (), ,
-   "Creates a new script asset using the targetFilePath.\n"
-   "@return The bool result of calling exec")
-{
-   return object->getShapeFilePath();
-}
+#endif

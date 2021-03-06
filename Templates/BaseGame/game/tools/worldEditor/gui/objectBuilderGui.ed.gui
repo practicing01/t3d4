@@ -32,7 +32,7 @@
 		text = "Create Object";
 
 		new GuiTextCtrl() {
-			profile = "GuiCenterTextProfile";
+			profile = "ToolsGuiTextProfile";
 			horizSizing = "right";
 			vertSizing = "bottom";
 			position = "9 26";
@@ -900,14 +900,16 @@ function ObjectBuilderGui::buildWaterPlane(%this)
 
 function ObjectBuilderGui::buildTerrainBlock(%this)
 {
-   %this.objectClassName = "TerrainBlock";
+   /*%this.objectClassName = "TerrainBlock";
    %this.createCallback = "ETerrainEditor.attachTerrain();";
 
    %this.addField("terrainFile", "TypeFile", "Terrain file", "", "*.ter");
    %this.addField("terrainAsset", "TypeTerrainAsset", "Terrain Asset", "", "");
    %this.addField("squareSize", "TypeInt", "Square size", "8");
 
-   %this.process();
+   %this.process();*/
+   
+   AssetBrowser.setupCreateNewAsset("TerrainAsset", AssetBrowser.selectedModule);
 }
 
 function ObjectBuilderGui::buildGroundCover( %this )
@@ -1250,5 +1252,25 @@ function RibbonData::create( %datablock )
       ribbon = %datablock;
    };
 
+   return %obj;
+}
+
+function ParticleEmitterData::create( %datablock ) 
+{
+   %obj = new ParticleEmitter()
+   {
+      dataBlock = %datablock;
+      parentGroup = EWCreatorWindow.objectGroup;
+   };
+   return %obj;
+}
+
+function PrecipitationData::create(%datablock)
+{
+   %obj = new Precipitation()
+   {
+      dataBlock = %datablock;
+      parentGroup = EWCreatorWindow.objectGroup;
+   };
    return %obj;
 }

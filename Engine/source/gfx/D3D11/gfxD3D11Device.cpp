@@ -40,6 +40,8 @@
 #include "shaderGen/shaderGen.h"
 #include <d3d9.h> //d3dperf
 
+#include "gfxD3D11TextureArray.h"
+
 #ifdef TORQUE_DEBUG
 #include "d3d11sdklayers.h"
 #endif
@@ -47,6 +49,8 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d9.lib") //d3dperf
 #pragma comment(lib, "d3d11.lib")
+
+class GFXD3D11TextureArray;
 
 class GFXPCD3D11RegisterDevice
 {
@@ -957,7 +961,7 @@ void GFXD3D11Device::reacquireDefaultPoolResources()
       mDynamicPB = new GFXD3D11PrimitiveBuffer(this, 0, 0, GFXBufferTypeDynamic);
 
    D3D11_BUFFER_DESC desc;
-   desc.ByteWidth = sizeof(U16) * MAX_DYNAMIC_INDICES;
+   desc.ByteWidth = sizeof(U16) * GFX_MAX_DYNAMIC_INDICES;
    desc.Usage = D3D11_USAGE_DYNAMIC;
    desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -1015,7 +1019,7 @@ GFXD3D11VertexBuffer * GFXD3D11Device::createVBPool( const GFXVertexFormat *vert
    vertexFormat->getDecl(); 
 
    D3D11_BUFFER_DESC desc;
-   desc.ByteWidth = vertSize * MAX_DYNAMIC_VERTS;
+   desc.ByteWidth = vertSize * GFX_MAX_DYNAMIC_VERTS;
    desc.Usage = D3D11_USAGE_DYNAMIC;
    desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -1279,7 +1283,7 @@ GFXPrimitiveBuffer * GFXD3D11Device::allocPrimitiveBuffer(U32 numIndices, U32 nu
    if(bufferType == GFXBufferTypeVolatile)
    {
         // Get it from the pool if it's a volatile...
-        AssertFatal(numIndices < MAX_DYNAMIC_INDICES, "Cannot allocate that many indices in a volatile buffer, increase MAX_DYNAMIC_INDICES.");
+        AssertFatal(numIndices < GFX_MAX_DYNAMIC_INDICES, "Cannot allocate that many indices in a volatile buffer, increase GFX_MAX_DYNAMIC_INDICES.");
 
         res->ib = mDynamicPB->ib;
         res->mVolatileBuffer = mDynamicPB;
@@ -1358,7 +1362,7 @@ GFXVertexBuffer * GFXD3D11Device::allocVertexBuffer(U32 numVerts, const GFXVerte
    if(bufferType == GFXBufferTypeVolatile)
    {
         // NOTE: Volatile VBs are pooled and will be allocated at lock time.
-        AssertFatal(numVerts <= MAX_DYNAMIC_VERTS, "GFXD3D11Device::allocVertexBuffer - Volatile vertex buffer is too big... see MAX_DYNAMIC_VERTS!");
+        AssertFatal(numVerts <= GFX_MAX_DYNAMIC_VERTS, "GFXD3D11Device::allocVertexBuffer - Volatile vertex buffer is too big... see GFX_MAX_DYNAMIC_VERTS!");
    }
    else
    {
@@ -1734,6 +1738,13 @@ GFXCubemapArray * GFXD3D11Device::createCubemapArray()
    GFXD3D11CubemapArray* cubeArray = new GFXD3D11CubemapArray();
    cubeArray->registerResourceWithDevice(this);
    return cubeArray;
+}
+
+GFXTextureArray * GFXD3D11Device::createTextureArray()
+{
+   GFXD3D11TextureArray* textureArray = new GFXD3D11TextureArray();
+   textureArray->registerResourceWithDevice(this);
+   return textureArray;
 }
 
 // Debug events

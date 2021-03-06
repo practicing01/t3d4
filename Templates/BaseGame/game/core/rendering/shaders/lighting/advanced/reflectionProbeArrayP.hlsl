@@ -1,4 +1,4 @@
-#include "../../postFx/postFx.hlsl"
+#include "../../postFX/postFx.hlsl"
 #include "../../shaderModel.hlsl"
 #include "../../shaderModelAutoGen.hlsl"
 #include "../../lighting.hlsl"
@@ -30,8 +30,7 @@ uniform float4 rtParams6;
 uniform float4    inProbePosArray[MAX_PROBES];
 uniform float4    inRefPosArray[MAX_PROBES];
 uniform float4x4  worldToObjArray[MAX_PROBES];
-uniform float4    refBoxMinArray[MAX_PROBES];
-uniform float4    refBoxMaxArray[MAX_PROBES];
+uniform float4    refScaleArray[MAX_PROBES];
 uniform float4    probeConfigData[MAX_PROBES];   //r,g,b/mode,radius,atten
 
 #if DEBUGVIZ_CONTRIB
@@ -52,7 +51,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    //early out if emissive
    if (getFlag(surface.matFlag, 0))
    {
-      return TORQUE_TEX2D(colorBuffer, IN.uv0.xy);
+      return float4(surface.albedo, 0);
    }
 
    #ifdef USE_SSAO_MASK
@@ -172,7 +171,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
       if (contrib > 0.0f)
       {
          int cubemapIdx = probeConfigData[i].a;
-         float3 dir = boxProject(surface.P, surface.R, worldToObjArray[i], refBoxMinArray[i].xyz, refBoxMaxArray[i].xyz, inRefPosArray[i].xyz);
+         float3 dir = boxProject(surface.P, surface.R, worldToObjArray[i], refScaleArray[i].xyz, inRefPosArray[i].xyz);
 
          irradiance += TORQUE_TEXCUBEARRAYLOD(irradianceCubemapAR, dir, cubemapIdx, 0).xyz * contrib;
          specular += TORQUE_TEXCUBEARRAYLOD(specularCubemapAR, dir, cubemapIdx, lod).xyz * contrib;

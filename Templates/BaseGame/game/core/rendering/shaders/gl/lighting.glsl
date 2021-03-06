@@ -24,7 +24,7 @@
 #include "./brdf.glsl"
 
 #ifndef TORQUE_SHADERGEN
-#line 26
+#line 27
 // These are the uniforms used by most lighting shaders.
 
 uniform vec4 inLightPos[4];
@@ -44,10 +44,25 @@ uniform vec4 albedo;
 
 #endif // !TORQUE_SHADERGEN
 
-#define MAX_PROBES 50
+#ifndef MAX_PROBES
+#define MAX_PROBES 8
+#endif
+
 #define MAX_FORWARD_PROBES 4
 
 #define MAX_FORWARD_LIGHT 4
+
+#ifndef CAPTURING
+#define CAPTURING 0
+#endif
+
+#ifndef DEBUGVIZ_ATTENUATION
+#define DEBUGVIZ_ATTENUATION 0
+#endif
+
+#ifndef DEBUGVIZ_CONTRIB
+#define DEBUGVIZ_CONTRIB 0
+#endif
 
 vec3 getDistanceVectorToPlane( vec3 origin, vec3 direction, vec4 plane )
 {
@@ -216,19 +231,24 @@ vec3 evaluateStandardBRDF(Surface surface, SurfaceToLight surfaceToLight)
    float D = D_GGX(surfaceToLight.NdotH, surface.linearRoughnessSq);
    vec3 Fr = D * F * Vis;
 
-   return Fd + Fr;
+#ifdef CAPTURING
+   return saturate(mix(Fd + Fr,surface.f0,surface.metalness));
+#else
+   return saturate(Fd + Fr);
+#endif
+
 }
 
 vec3 getDirectionalLight(Surface surface, SurfaceToLight surfaceToLight, vec3 lightColor, float lightIntensity, float shadow)
 {
-   vec3 factor = lightColor * max(surfaceToLight.NdotL, 0.0f) * shadow * lightIntensity;
+   vec3 factor = lightColor * max(surfaceToLight.NdotL * shadow * lightIntensity*(1.0-surface.metalness), 0.0f);
    return evaluateStandardBRDF(surface,surfaceToLight) * factor;
 }
 
 vec3 getPunctualLight(Surface surface, SurfaceToLight surfaceToLight, vec3 lightColor, float lightIntensity, float radius, float shadow)
 {
    float attenuation = getDistanceAtt(surfaceToLight.Lu, radius);
-   vec3 factor = lightColor * max(surfaceToLight.NdotL, 0.0f) * shadow * lightIntensity * attenuation;
+   vec3 factor = lightColor * max(surfaceToLight.NdotL * shadow * lightIntensity * attenuation*(1.0-surface.metalness), 0.0f);
    return evaluateStandardBRDF(surface,surfaceToLight) * factor;
 }
 
@@ -331,14 +351,14 @@ float defineBoxSpaceInfluence(vec3 wsPosition, mat4 worldToObj, float attenuatio
 // Box Projected IBL Lighting
 // Based on: http://www.gamedev.net/topic/568829-box-projected-cubemap-environment-mapping/
 // and https://seblagarde.wordpress.com/2012/09/29/image-based-lighting-approaches-and-parallax-corrected-cubemap/
-vec3 boxProject(vec3 wsPosition, vec3 wsReflectVec, mat4 worldToObj, vec3 refBoxMin, vec3 refBoxMax, vec3 refPosition)
+vec3 boxProject(vec3 wsPosition, vec3 wsReflectVec, mat4 worldToObj, vec3 refScale, vec3 refPosition)
 {
    vec3 RayLS = tMul(worldToObj, vec4(wsReflectVec, 0.0)).xyz;
    vec3 PositionLS = tMul(worldToObj, vec4(wsPosition, 1.0)).xyz;
 
-   vec3 unit = refBoxMax.xyz - refBoxMin.xyz;
-   vec3 plane1vec = (unit / 2 - PositionLS) / RayLS;
-   vec3 plane2vec = (-unit / 2 - PositionLS) / RayLS;
+   vec3 unit = refScale;
+   vec3 plane1vec = (unit - PositionLS) / RayLS;
+   vec3 plane2vec = (-unit - PositionLS) / RayLS;
    vec3 furthestPlane = max(plane1vec, plane2vec);
    float dist = min(min(furthestPlane.x, furthestPlane.y), furthestPlane.z);
    vec3 posonbox = wsPosition + wsReflectVec * dist;
@@ -348,7 +368,7 @@ vec3 boxProject(vec3 wsPosition, vec3 wsReflectVec, mat4 worldToObj, vec3 refBox
 
 vec4 computeForwardProbes(Surface surface,
     float cubeMips, int numProbes, mat4x4 worldToObjArray[MAX_FORWARD_PROBES], vec4 probeConfigData[MAX_FORWARD_PROBES], 
-    vec4 inProbePosArray[MAX_FORWARD_PROBES], vec4 refBoxMinArray[MAX_FORWARD_PROBES], vec4 refBoxMaxArray[MAX_FORWARD_PROBES], vec4 inRefPosArray[MAX_FORWARD_PROBES],
+    vec4 inProbePosArray[MAX_FORWARD_PROBES], vec4 refScaleArray[MAX_FORWARD_PROBES], vec4 inRefPosArray[MAX_FORWARD_PROBES],
     float skylightCubemapIdx, sampler2D BRDFTexture, 
 	samplerCubeArray irradianceCubemapAR, samplerCubeArray specularCubemapAR)
 {
@@ -408,7 +428,7 @@ vec4 computeForwardProbes(Surface surface,
       }
    }
 
-#if DEBUGVIZ_ATTENUATION == 1
+#if (DEBUGVIZ_ATTENUATION == 1)
       float contribAlpha = 1;
       for (i = 0; i < numProbes; ++i)
       {
@@ -418,7 +438,7 @@ vec4 computeForwardProbes(Surface surface,
       return vec4(1 - contribAlpha, 1 - contribAlpha, 1 - contribAlpha, 1);
 #endif
 
-#if DEBUGVIZ_CONTRIB == 1
+#if (DEBUGVIZ_CONTRIB == 1)
    vec3 probeContribColors[4];
    probeContribColors[0] = vec3(1,0,0);
    probeContribColors[1] = vec3(0,1,0);
@@ -452,7 +472,7 @@ vec4 computeForwardProbes(Surface surface,
       if (contrib > 0.0f)
       {
          float cubemapIdx = int(probeConfigData[i].a);
-         vec3 dir = boxProject(surface.P, surface.R, worldToObjArray[i], refBoxMinArray[i].xyz, refBoxMaxArray[i].xyz, inRefPosArray[i].xyz);
+         vec3 dir = boxProject(surface.P, surface.R, worldToObjArray[i], refScaleArray[i].xyz, inRefPosArray[i].xyz);
 
          irradiance += textureLod(irradianceCubemapAR, vec4(dir, cubemapIdx), 0).xyz * contrib;
          specular += textureLod(specularCubemapAR, vec4(dir, cubemapIdx), lod).xyz * contrib;
@@ -490,7 +510,7 @@ vec4 computeForwardProbes(Surface surface,
 
 vec4 debugVizForwardProbes(Surface surface,
     float cubeMips, int numProbes, mat4 worldToObjArray[MAX_FORWARD_PROBES], vec4 probeConfigData[MAX_FORWARD_PROBES], 
-    vec4 inProbePosArray[MAX_FORWARD_PROBES], vec4 refBoxMinArray[MAX_FORWARD_PROBES], vec4 refBoxMaxArray[MAX_FORWARD_PROBES], vec4 inRefPosArray[MAX_FORWARD_PROBES],
+    vec4 inProbePosArray[MAX_FORWARD_PROBES], vec4 refScaleArray[MAX_FORWARD_PROBES], vec4 inRefPosArray[MAX_FORWARD_PROBES],
     float skylightCubemapIdx, sampler2D BRDFTexture, 
 	 samplerCubeArray irradianceCubemapAR, samplerCubeArray specularCubemapAR, int showAtten, int showContrib, int showSpec, int showDiff)
 {
@@ -601,7 +621,7 @@ vec4 debugVizForwardProbes(Surface surface,
       if (contrib > 0.0f)
       {
          float cubemapIdx = probeConfigData[i].a;
-         vec3 dir = boxProject(surface.P, surface.R, worldToObjArray[i], refBoxMinArray[i].xyz, refBoxMaxArray[i].xyz, inRefPosArray[i].xyz);
+         vec3 dir = boxProject(surface.P, surface.R, worldToObjArray[i], refScaleArray[i].xyz, inRefPosArray[i].xyz);
 
          irradiance += textureLod(irradianceCubemapAR, vec4(dir, cubemapIdx), 0).xyz * contrib;
          specular += textureLod(specularCubemapAR, vec4(dir, cubemapIdx), lod).xyz * contrib;

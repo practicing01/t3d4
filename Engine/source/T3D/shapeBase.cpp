@@ -68,6 +68,7 @@
 #include "renderInstance/renderOcclusionMgr.h"
 #include "core/stream/fileStream.h"
 #include "T3D/accumulationVolume.h"
+#include "console/persistenceManager.h"
 
 IMPLEMENT_CO_DATABLOCK_V1(ShapeBaseData);
 
@@ -157,7 +158,6 @@ ShapeBaseData::ShapeBaseData()
    shadowMaxVisibleDistance( 80.0f ),
    shadowProjectionDistance( 10.0f ),
    shadowSphereAdjust( 1.0f ),
-   shapeName( StringTable->EmptyString() ),
    cloakTexName( StringTable->EmptyString() ),
    cubeDescId( 0 ),
    reflectorDesc( NULL ),
@@ -197,7 +197,8 @@ ShapeBaseData::ShapeBaseData()
    isInvincible( false ),
    renderWhenDestroyed( true ),
    inheritEnergyFromMount( false )
-{      
+{
+   initShapeAsset(Shape);
    dMemset( mountPointNode, -1, sizeof( S32 ) * SceneObject::NumMountPoints );
    remap_txr_tags = NULL;
    remap_buffer = NULL;
@@ -211,8 +212,8 @@ ShapeBaseData::ShapeBaseData(const ShapeBaseData& other, bool temp_clone) : Game
    shadowMaxVisibleDistance = other.shadowMaxVisibleDistance;
    shadowProjectionDistance = other.shadowProjectionDistance;
    shadowSphereAdjust = other.shadowSphereAdjust;
-   shapeName = other.shapeName;
    cloakTexName = other.cloakTexName;
+   cloneShapeAsset(Shape);
    cubeDescName = other.cubeDescName;
    cubeDescId = other.cubeDescId;
    reflectorDesc = other.reflectorDesc;
@@ -355,16 +356,34 @@ bool ShapeBaseData::preload(bool server, String &errorStr)
          }
       }
    }
+   PersistenceManager *persistMgr;
+   if (!Sim::findObject("ServerAssetValidator", persistMgr)) Con::errorf("ServerAssetValidator not found!");
+   if (server && persistMgr && mShapeAssetId == StringTable->EmptyString())
+   {
+      persistMgr->setDirty(this);
+   }
 
-   //
-   if (shapeName && shapeName[0]) {
+   //Legacy catch
+   if (mShapeName != StringTable->EmptyString())
+   {
+      mShapeAssetId = ShapeAsset::getAssetIdByFilename(mShapeName);
+   }
+   U32 assetState = ShapeAsset::getAssetById(mShapeAssetId, &mShapeAsset);
+   if (ShapeAsset::Failed != assetState)
+   {
+      //only clear the legacy direct file reference if everything checks out fully
+      if (assetState == ShapeAsset::Ok)
+      {
+         mShapeName = StringTable->EmptyString();
+      }
+      else Con::warnf("Warning: ShapeBaseData::preload-%s", ShapeAsset::getAssetErrstrn(assetState).c_str());
       S32 i;
 
       // Resolve shapename
-      mShape = ResourceManager::get().load(shapeName);
+      mShape = mShapeAsset->getShapeResource();
       if (bool(mShape) == false)
       {
-         errorStr = String::ToString("ShapeBaseData: Couldn't load shape \"%s\"",shapeName);
+         errorStr = String::ToString("ShapeBaseData: Couldn't load shape \"%s\"",mShapeName);
          return false;
       }
       if(!server && !mShape->preloadMaterialList(mShape.getPath()) && NetConnection::filesWereDownloaded())
@@ -372,13 +391,13 @@ bool ShapeBaseData::preload(bool server, String &errorStr)
 
       if(computeCRC)
       {
-         Con::printf("Validation required for shape: %s", shapeName);
+         Con::printf("Validation required for shape: %s", mShapeName);
 
          Torque::FS::FileNodeRef    fileRef = Torque::FS::GetFileNode(mShape.getPath());
 
          if (!fileRef)
          {
-            errorStr = String::ToString("ShapeBaseData: Couldn't load shape \"%s\"",shapeName);
+            errorStr = String::ToString("ShapeBaseData: Couldn't load shape \"%s\"", mShapeName);
             return false;
          }
 
@@ -386,7 +405,7 @@ bool ShapeBaseData::preload(bool server, String &errorStr)
             mCRC = fileRef->getChecksum();
          else if(mCRC != fileRef->getChecksum())
          {
-            errorStr = String::ToString("Shape \"%s\" does not match version on server.",shapeName);
+            errorStr = String::ToString("Shape \"%s\" does not match version on server.", mShapeName);
             return false;
          }
       }
@@ -408,13 +427,13 @@ bool ShapeBaseData::preload(bool server, String &errorStr)
             if (!mShape->mBounds.isContained(collisionBounds.last()))
             {
                if (!silent_bbox_check)
-               Con::warnf("Warning: shape %s collision detail %d (Collision-%d) bounds exceed that of shape.", shapeName, collisionDetails.size() - 1, collisionDetails.last());
+               Con::warnf("Warning: shape %s collision detail %d (Collision-%d) bounds exceed that of shape.", mShapeName, collisionDetails.size() - 1, collisionDetails.last());
                collisionBounds.last() = mShape->mBounds;
             }
             else if (collisionBounds.last().isValidBox() == false)
             {
                if (!silent_bbox_check)
-               Con::errorf("Error: shape %s-collision detail %d (Collision-%d) bounds box invalid!", shapeName, collisionDetails.size() - 1, collisionDetails.last());
+               Con::errorf("Error: shape %s-collision detail %d (Collision-%d) bounds box invalid!", mShapeName, collisionDetails.size() - 1, collisionDetails.last());
                collisionBounds.last() = mShape->mBounds;
             }
 
@@ -574,7 +593,10 @@ void ShapeBaseData::initPersistFields()
 
    addGroup( "Render" );
 
-      addField( "shapeFile", TypeShapeFilename, Offset(shapeName, ShapeBaseData),
+      addField("shapeAsset", TypeShapeAssetId, Offset(mShapeAssetId, ShapeBaseData),
+         "The source shape asset.");
+
+      addField( "shapeFile", TypeShapeFilename, Offset(mShapeName, ShapeBaseData),
          "The DTS or DAE model to use for this object." );
 
    endGroup( "Render" );
@@ -779,7 +801,8 @@ void ShapeBaseData::packData(BitStream* stream)
    stream->write(shadowSphereAdjust);
 
 
-   stream->writeString(shapeName);
+   packShapeAsset(stream);
+
    stream->writeString(cloakTexName);
    if(stream->writeFlag(mass != gShapeBaseDataProto.mass))
       stream->write(mass);
@@ -856,7 +879,9 @@ void ShapeBaseData::unpackData(BitStream* stream)
    stream->read(&shadowProjectionDistance);
    stream->read(&shadowSphereAdjust);
 
-   shapeName = stream->readSTString();
+
+   unpackShapeAsset(stream);
+
    cloakTexName = stream->readSTString();
    if(stream->readFlag())
       stream->read(&mass);

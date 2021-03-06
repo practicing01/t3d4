@@ -22,6 +22,8 @@
 
 #include "platform/platform.h"
 #include "gfx/gl/gfxGLDevice.h"
+
+#include "gfxGLTextureArray.h"
 #include "platform/platformGL.h"
 
 #include "gfx/gfxCubemap.h"
@@ -232,7 +234,7 @@ GFXGLDevice::GFXGLDevice(U32 adapterIndex) :
    mTextureManager = new GFXGLTextureManager();
    gScreenShot = new ScreenShotGL();
 
-   for(U32 i = 0; i < TEXTURE_STAGE_COUNT; i++)
+   for(U32 i = 0; i < GFX_TEXTURE_STAGE_COUNT; i++)
       mActiveTextureType[i] = GL_ZERO;
 
    mNumVertexStream = 2;
@@ -258,7 +260,7 @@ GFXGLDevice::~GFXGLDevice()
       mVolatilePBs[i] = NULL;
 
    // Clear out our current texture references
-   for (U32 i = 0; i < TEXTURE_STAGE_COUNT; i++)
+   for (U32 i = 0; i < GFX_TEXTURE_STAGE_COUNT; i++)
    {
       mCurrentTexture[i] = NULL;
       mNewTexture[i] = NULL;
@@ -455,6 +457,13 @@ GFXCubemapArray *GFXGLDevice::createCubemapArray()
    GFXGLCubemapArray* cubeArray = new GFXGLCubemapArray();
    cubeArray->registerResourceWithDevice(this);
    return cubeArray;
+}
+
+GFXTextureArray* GFXGLDevice::createTextureArray()
+{
+   GFXGLTextureArray* textureArray = new GFXGLTextureArray();
+   textureArray->registerResourceWithDevice(this);
+   return textureArray;
 }
 
 void GFXGLDevice::endSceneInternal() 
@@ -702,21 +711,6 @@ void GFXGLDevice::setPB(GFXGLPrimitiveBuffer* pb)
    mCurrentPB = pb;
 }
 
-void GFXGLDevice::setLightInternal(U32 lightStage, const GFXLightInfo light, bool lightEnable)
-{
-   // ONLY NEEDED ON FFP
-}
-
-void GFXGLDevice::setLightMaterialInternal(const GFXLightMaterial mat)
-{
-   // ONLY NEEDED ON FFP
-}
-
-void GFXGLDevice::setGlobalAmbientInternal(LinearColorF color)
-{
-   // ONLY NEEDED ON FFP
-}
-
 void GFXGLDevice::setTextureInternal(U32 textureUnit, const GFXTextureObject*texture)
 {
    GFXGLTextureObject *tex = static_cast<GFXGLTextureObject*>(const_cast<GFXTextureObject*>(texture));
@@ -766,9 +760,20 @@ void GFXGLDevice::setCubemapArrayInternal(U32 textureUnit, const GFXGLCubemapArr
    }
 }
 
-void GFXGLDevice::setMatrix( GFXMatrixType mtype, const MatrixF &mat )
+void GFXGLDevice::setTextureArrayInternal(U32 textureUnit, const GFXGLTextureArray* texture)
 {
-   // ONLY NEEDED ON FFP
+   if (texture)
+   {
+      mActiveTextureType[textureUnit] = GL_TEXTURE_2D_ARRAY;
+      texture->bind(textureUnit);
+   }
+   else if (mActiveTextureType[textureUnit] != GL_ZERO)
+   {
+      glActiveTexture(GL_TEXTURE0 + textureUnit);
+      glBindTexture(mActiveTextureType[textureUnit], 0);
+      getOpenglCache()->setCacheBindedTex(textureUnit, mActiveTextureType[textureUnit], 0);
+      mActiveTextureType[textureUnit] = GL_ZERO;
+   }
 }
 
 void GFXGLDevice::setClipRect( const RectI &inRect )
@@ -812,8 +817,6 @@ void GFXGLDevice::setClipRect( const RectI &inRect )
    translate.setColumn(3, pt);
    
    mProjectionMatrix *= translate;
-   
-   setMatrix(GFXMatrixProjection, mProjectionMatrix);
    
    MatrixF mTempMatrix(true);
    setViewMatrix( mTempMatrix );
@@ -960,7 +963,7 @@ void GFXGLDevice::setShaderConstBufferInternal(GFXShaderConstBuffer* buffer)
 
 U32 GFXGLDevice::getNumSamplers() const
 {
-   return getMin((U32)TEXTURE_STAGE_COUNT,mPixelShaderVersion > 0.001f ? mMaxShaderTextures : mMaxFFTextures);
+   return getMin((U32)GFX_TEXTURE_STAGE_COUNT,mPixelShaderVersion > 0.001f ? mMaxShaderTextures : mMaxFFTextures);
 }
 
 GFXTextureObject* GFXGLDevice::getDefaultDepthTex() const 

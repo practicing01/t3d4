@@ -42,17 +42,17 @@ protected:
 
    //AssetPtr<ImageAsset> mDiffuseAsset;
 
-   DECLARE_TEXTUREMAP(DiffuseMap);
+   DECLARE_TEXTUREMAP(TerrainMaterial, DiffuseMap);
 
    /// The size of the diffuse base map in meters 
    /// used to generate its texture coordinates.
    F32 mDiffuseSize;
 
    ///
-   DECLARE_TEXTUREMAP(NormalMap);
+   DECLARE_TEXTUREMAP(TerrainMaterial, NormalMap);
 
    ///
-   DECLARE_TEXTUREMAP(DetailMap);
+   DECLARE_TEXTUREMAP(TerrainMaterial, DetailMap);
    
    /// The size of the detail map in meters used
    /// to generate the texture coordinates for the
@@ -66,7 +66,7 @@ protected:
    F32 mDetailDistance;
 
    ///
-   DECLARE_TEXTUREMAP(ORMConfigMap);
+   DECLARE_TEXTUREMAP(TerrainMaterial, ORMConfigMap);
 
    bool mIsSRGB;
    bool mInvertRoughness;
@@ -77,13 +77,20 @@ protected:
    /// planes.
    bool mSideProjection;
 
-   DECLARE_TEXTUREMAP(MacroMap);
+   DECLARE_TEXTUREMAP(TerrainMaterial, MacroMap);
    F32 mMacroSize;
    F32 mMacroStrength;
    F32 mMacroDistance;
 
    ///
    F32 mParallaxScale;
+
+   /// Depth for blending the textures using the new
+   /// blending method. Higher numbers = larger blend
+   /// radius.
+   F32 mBlendDepth;
+
+   F32 mBlendContrast;
 
 public:
 
@@ -121,6 +128,10 @@ public:
    bool useSideProjection() const { return mSideProjection; }
 
    F32 getParallaxScale() const { return mParallaxScale; }
+
+   F32 getBlendDepth() const { return mBlendDepth; }
+
+   F32 getBlendContrast() const { return mBlendContrast; }
 
    bool getIsSRGB() const { return mIsSRGB; }
 

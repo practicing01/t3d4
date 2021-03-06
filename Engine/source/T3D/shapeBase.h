@@ -67,6 +67,10 @@
    #include "console/dynamicTypes.h"
 #endif
 
+#ifndef SHAPEASSET_H
+#include "T3D/assets/ShapeAsset.h"
+#endif 
+
 // Need full definition visible for SimObjectPtr<ParticleEmitter>
 #include "T3D/fx/particleEmitter.h"
 
@@ -534,8 +538,8 @@ public:
    F32 shadowProjectionDistance;
    F32 shadowSphereAdjust;
 
+   DECLARE_SHAPEASSET(ShapeBaseData, Shape);
 
-   StringTableEntry  shapeName;
    StringTableEntry  cloakTexName;
 
    String cubeDescName;

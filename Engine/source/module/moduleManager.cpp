@@ -38,6 +38,8 @@
 #include "console/consoleTypes.h"
 #endif
 
+#include "cinterface/cinterface.h"
+
 #ifndef _MODULE_DEFINITION_H
 #include "module/moduleDefinition.h"
 #endif
@@ -838,21 +840,19 @@ bool ModuleManager::loadModuleExplicit( const char* pModuleId, const U32 version
             const bool scriptFileExecuted = dAtob( Con::executef("exec", pLoadReadyModuleDefinition->getModuleScriptFilePath() ) );
 
             // Did we execute the script file?
-            if ( scriptFileExecuted )
-            {
-                // Yes, so is the create method available?
-                if ( pScopeSet->isMethod( pLoadReadyModuleDefinition->getCreateFunction() ) )
-                {
-                    // Yes, so call the create method.
-                    Con::executef( pScopeSet, pLoadReadyModuleDefinition->getCreateFunction() );
-                }
-            }
-            else
+            if ( !scriptFileExecuted )
             {
                 // No, so warn.
                 Con::errorf( "Module Manager: Cannot load explicit module Id '%s' at version Id '%d' as it failed to have the script file '%s' loaded.",
                     pLoadReadyModuleDefinition->getModuleId(), pLoadReadyModuleDefinition->getVersionId(), pLoadReadyModuleDefinition->getModuleScriptFilePath() );
             }
+        }
+
+        // Is the create method available?
+        if (pScopeSet->isMethod(pLoadReadyModuleDefinition->getCreateFunction()))
+        {
+           // Yes, so call the create method.
+           Con::executef(pScopeSet, pLoadReadyModuleDefinition->getCreateFunction());
         }
 
         // Raise notifications.
@@ -1055,6 +1055,42 @@ ModuleDefinition* ModuleManager::findModule( const char* pModuleId, const U32 ve
         return NULL;
 
     return *moduleItr;
+}
+
+//-----------------------------------------------------------------------------
+
+ModuleDefinition* ModuleManager::findModuleByFilePath(StringTableEntry filePath)
+{
+   // Sanity!
+   AssertFatal(filePath != StringTable->EmptyString(), "Cannot find module with an empty filePath.");
+
+   String desiredPath = filePath;
+   StringTableEntry coreModuleId = StringTable->insert("CoreModule");
+   StringTableEntry toolsModuleId = StringTable->insert("ToolsModule");
+
+   for (typeModuleIdDatabaseHash::iterator moduleIdItr = mModuleIdDatabase.begin(); moduleIdItr != mModuleIdDatabase.end(); ++moduleIdItr)
+   {
+      // Fetch module definition entry.
+      ModuleDefinitionEntry* pModuleDefinitionEntry = moduleIdItr->value;
+
+      for (typeModuleDefinitionVector::iterator moduleDefinitionItr = pModuleDefinitionEntry->begin(); moduleDefinitionItr != pModuleDefinitionEntry->end(); ++moduleDefinitionItr)
+      {
+         // Fetch module definition.
+         ModuleDefinition* pModuleDefinition = *moduleDefinitionItr;
+
+         Torque::Path modulePath = pModuleDefinition->getModulePath();
+
+         StringTableEntry asdasd = StringTable->insert(modulePath.getFullPath());
+
+         //We don't deal with CoreModule or ToolsModule having assets for now
+         if (desiredPath.startsWith(asdasd) && pModuleDefinition->mModuleId != coreModuleId)
+         {
+            return pModuleDefinition;
+         }
+      }
+   }
+
+   return nullptr;
 }
 
 //-----------------------------------------------------------------------------

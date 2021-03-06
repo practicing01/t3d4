@@ -894,6 +894,45 @@ Torque::Path GFXTextureManager::validatePath(const Torque::Path &path)
    return correctPath;
 }
 
+GBitmap *GFXTextureManager::loadUncompressedTexture(const Torque::Path &path, GFXTextureProfile *profile, U32 width, U32 height, bool genMips)
+{
+   GBitmap* inBitmap = loadUncompressedTexture(path, &GFXTexturePersistentProfile);
+
+   if (inBitmap == NULL)
+   {
+      Con::warnf("GFXTextureManager::loadUncompressedTexture unable to load texture: %s", path.getFullPath().c_str());
+      return NULL;
+   }
+
+   // Set the format so we don't have to handle which channels are where.
+   if (!inBitmap->setFormat(GFXFormatR8G8B8A8))
+   {
+      Con::warnf("GFXTextureManager::loadUncompressedTexture unable to handle texture format: %s", path.getFullPath().c_str());
+      return NULL;
+   }
+
+   GBitmap* outBmp = new GBitmap(width, height, true, GFXFormatR8G8B8A8);
+
+   U8* oBits = (U8*)outBmp->getWritableBits();
+   for (S32 y = 0; y < width; y++)
+   {
+      for (S32 x = 0; x < height; x++)
+      {
+         ColorI texelColor = inBitmap->sampleTexel(x / F32(width), y / F32(height), true).toColorI(true);
+
+         oBits[(y * width + x) * 4] = texelColor.red;
+         oBits[(y * width + x) * 4 + 1] = texelColor.green;
+         oBits[(y * width + x) * 4 + 2] = texelColor.blue;
+         oBits[(y * width + x) * 4 + 3] = texelColor.alpha;
+      }
+   }
+
+   if (genMips)
+      outBmp->extrudeMipLevels();
+
+   return outBmp;
+}
+
 GBitmap *GFXTextureManager::loadUncompressedTexture(const Torque::Path &path, GFXTextureProfile *profile)
 {
    PROFILE_SCOPE(GFXTextureManager_loadUncompressedTexture);
@@ -1199,7 +1238,7 @@ GFXTextureObject *GFXTextureManager::createCompositeTexture(GBitmap*bmp[4], U32 
          if (bmp[0])
             rChan = bmp[0]->getChanelValueAt(x, y, inputKey[0]);
          else
-            gChan = 255;
+            rChan = 255;
 
          if (bmp[1])
             gChan = bmp[1]->getChanelValueAt(x, y, inputKey[1]);

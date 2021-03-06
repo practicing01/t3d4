@@ -85,6 +85,8 @@ GroundPlane::GroundPlane()
 
    mConvexList = new Convex;
    mTypeMask |= TerrainLikeObjectType;
+
+   initMaterialAsset(Material);
 }
 
 GroundPlane::~GroundPlane()
@@ -103,7 +105,8 @@ void GroundPlane::initPersistFields()
       addField( "squareSize",    TypeF32,          Offset( mSquareSize, GroundPlane ), "Square size in meters to which %GroundPlane subdivides its geometry." );
       addField( "scaleU",        TypeF32,          Offset( mScaleU, GroundPlane ), "Scale of texture repeat in the U direction." );
       addField( "scaleV",        TypeF32,          Offset( mScaleV, GroundPlane ), "Scale of texture repeat in the V direction." );
-      addField( "material",      TypeMaterialName, Offset( mMaterialName, GroundPlane ), "Name of Material used to render %GroundPlane's surface." );
+
+      scriptBindMaterialAsset(Material, GroundPlane, "The material used to render the ground plane.");
 
    endGroup( "Plane" );
    
@@ -187,7 +190,8 @@ U32 GroundPlane::packUpdate( NetConnection* connection, U32 mask, BitStream* str
    stream->write( mSquareSize );
    stream->write( mScaleU );
    stream->write( mScaleV );
-   stream->write( mMaterialName );
+
+   packMaterialAsset(connection, Material);
 
    return retMask;
 }
@@ -199,7 +203,8 @@ void GroundPlane::unpackUpdate( NetConnection* connection, BitStream* stream )
    stream->read( &mSquareSize );
    stream->read( &mScaleU );
    stream->read( &mScaleV );
-   stream->read( &mMaterialName );
+
+   unpackMaterialAsset(connection, Material);
 
    // If we're added then something possibly changed in 
    // the editor... do an update of the material and the
@@ -213,23 +218,18 @@ void GroundPlane::unpackUpdate( NetConnection* connection, BitStream* stream )
 
 void GroundPlane::_updateMaterial()
 {
-   if( mMaterialName.isEmpty() )
+   if (mMaterialAsset.notNull())
    {
-      Con::warnf( "GroundPlane::_updateMaterial - no material set; defaulting to 'WarningMaterial'" );
-      mMaterialName = "WarningMaterial";
+      if (mMaterial && String(mMaterialAsset->getMaterialDefinitionName()).equal(mMaterial->getMaterial()->getName(), String::NoCase))
+         return;
+
+      SAFE_DELETE(mMaterial);
+
+      mMaterial = MATMGR->createMatInstance(mMaterialAsset->getMaterialDefinitionName(), getGFXVertexFormat< VertexType >());
+
+      if (!mMaterial)
+         Con::errorf("GroundPlane::_updateMaterial - no Material called '%s'", mMaterialAsset->getMaterialDefinitionName());
    }
-
-   // If the material name matches then don't 
-   // bother updating it.
-   if (  mMaterial && 
-         mMaterialName.compare( mMaterial->getMaterial()->getName() ) == 0 )
-      return;
-
-   SAFE_DELETE( mMaterial );
-
-   mMaterial = MATMGR->createMatInstance( mMaterialName, getGFXVertexFormat< VertexType >() );
-   if ( !mMaterial )
-      Con::errorf( "GroundPlane::_updateMaterial - no material called '%s'", mMaterialName.c_str() );
 }
 
 bool GroundPlane::castRay( const Point3F& start, const Point3F& end, RayInfo* info )
@@ -580,6 +580,13 @@ void GroundPlane::generateGrid( U32 width, U32 height, F32 squareSize,
    }
 
    outPrimitives.unlock();
+}
+
+void GroundPlane::getUtilizedAssets(Vector<StringTableEntry>* usedAssetsList)
+{
+   if (!mMaterialAsset.isNull() && mMaterialAsset->getAssetId() != StringTable->insert("Core_Rendering:noMaterial"))
+      usedAssetsList->push_back_unique(mMaterialAsset->getAssetId());
+
 }
 
 DefineEngineMethod( GroundPlane, postApply, void, (),,

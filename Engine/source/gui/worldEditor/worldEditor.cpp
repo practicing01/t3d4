@@ -1500,7 +1500,6 @@ void WorldEditor::renderSplinePath(SimPath::Path *path)
       desc.setCullMode( GFXCullNone );
       desc.setBlend( true, GFXBlendSrcAlpha, GFXBlendInvSrcAlpha);
       desc.samplersDefined = true;
-      desc.samplers[0].textureColorOp = GFXTOPDisable;
 
       mSplineSB = GFX->createStateBlock( desc );
    }
@@ -3780,11 +3779,27 @@ void WorldEditor::makeSelectionPrefab( const char *filename, bool dontReplaceOri
    // Transform from World to Prefab space.
    MatrixF fabMat(true);
    fabMat.setPosition( mSelected->getCentroid() );
-   fabMat.inverse();
 
    MatrixF objMat;
    SimObject *obj = NULL;
    SceneObject *sObj = NULL;
+
+   F32 maxLen = 0;
+   for (S32 i = 0; i < found.size(); i++)
+   {
+      obj = found[i];
+      sObj = dynamic_cast<SceneObject*>(obj);
+      if (sObj && !(sObj->isGlobalBounds()))
+      {
+         if (maxLen < sObj->getWorldBox().len_max())
+         {
+            maxLen = sObj->getWorldBox().len_max();
+            fabMat.setPosition(sObj->getPosition());
+         }
+      }
+   }
+   fabMat.inverse();
+
 
    for ( S32 i = 0; i < found.size(); i++ )
    {      
@@ -3979,22 +3994,23 @@ bool WorldEditor::makeSelectionAMesh(const char *filename)
    }
    else
    {
-      orientation.identity();
-      centroid.zero();
-
-      S32 count = 0;
-
-      for (S32 i = 0; i < objectList.size(); i++)
+      SimObject* obj = NULL;
+      SceneObject* sObj = NULL;
+      F32 maxLen = 0;
+      for (S32 i = 0; i < found.size(); i++)
       {
-         SceneObject *pObj = objectList[i];
-         if (pObj->isGlobalBounds())
-            continue;
-
-         centroid += pObj->getPosition();
-         count++;
+         obj = found[i];
+         sObj = dynamic_cast<SceneObject*>(obj);
+         if (sObj && !(sObj->isGlobalBounds()))
+         {
+            if (maxLen < sObj->getWorldBox().len_max())
+            {
+               maxLen = sObj->getWorldBox().len_max();
+               orientation = sObj->getTransform();
+               centroid = sObj->getPosition();
+            }
+         }
       }
-
-      centroid /= count;
    }
 
    orientation.setPosition(centroid);

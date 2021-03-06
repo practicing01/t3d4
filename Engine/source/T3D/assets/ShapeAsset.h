@@ -54,8 +54,12 @@
 #include "ShapeAnimationAsset.h"
 #endif
 
+#ifdef TORQUE_TOOLS
 #include "gui/editor/guiInspectorTypes.h"
-
+#endif
+#ifndef _BITSTREAM_H_
+#include "core/stream/bitStream.h"
+#endif
 //-----------------------------------------------------------------------------
 class ShapeAsset : public AssetBase
 {
@@ -81,6 +85,22 @@ protected:
    ShapeAssetChanged mChangeSignal;
 
 public:
+   enum ShapeAssetErrCode
+   {
+      TooManyVerts = AssetErrCode::Extended,
+      TooManyBones,
+      MissingAnimatons,
+      Extended
+   };
+
+   static const String mErrCodeStrings[ShapeAssetErrCode::Extended - Parent::Extended + 1];
+   static String getAssetErrstrn(U32 errCode)
+   {
+      if (errCode < Parent::Extended) return Parent::getAssetErrstrn(errCode);
+      if (errCode > ShapeAssetErrCode::Extended) return "undefined error";
+      return mErrCodeStrings[errCode];
+   };
+
    ShapeAsset();
    virtual ~ShapeAsset();
 
@@ -96,6 +116,7 @@ public:
    DECLARE_CONOBJECT(ShapeAsset);
 
    bool loadShape();
+   U32 mLoadedState;
 
    TSShape* getShape() { return mShape; }
 
@@ -138,10 +159,15 @@ public:
    inline StringTableEntry getShapeConstructorFilePath(void) const { return mConstructorFilePath; };
 
    static bool getAssetByFilename(StringTableEntry fileName, AssetPtr<ShapeAsset>* shapeAsset);
+
    static StringTableEntry getAssetIdByFilename(StringTableEntry fileName);
-   static bool getAssetById(StringTableEntry assetId, AssetPtr<ShapeAsset>* shapeAsset);
+   static U32 getAssetById(StringTableEntry assetId, AssetPtr<ShapeAsset>* shapeAsset);
 
    static StringTableEntry getNoShapeAssetId() { return StringTable->insert("Core_Rendering:noshape"); }
+
+#ifdef TORQUE_TOOLS
+   const char* generateCachedPreviewImage(S32 resolution);
+#endif
 
 protected:
    virtual void            onAssetRefresh(void);
@@ -154,6 +180,7 @@ protected:
 
 };
 
+#ifdef TORQUE_TOOLS
 DefineConsoleType(TypeShapeAssetPtr, S32)
 DefineConsoleType(TypeShapeAssetId, String)
 
@@ -182,6 +209,88 @@ public:
    DECLARE_CONOBJECT(GuiInspectorTypeShapeAssetId);
    static void consoleInit();
 };
+#endif
+
+#define assetText(x,suff) std::string(std::string(#x) + std::string(#suff)).c_str()
+
+#define initShapeAsset(name) m##name##Name = StringTable->EmptyString(); m##name##AssetId = StringTable->EmptyString(); m##name##Asset = NULL;
+#define cloneShapeAsset(name) m##name##Name = other.m##name##Name; m##name##AssetId = other.m##name##AssetId; m##name##Asset = other.m##name##Asset;
+#define bindShapeAsset(name) if (m##name##AssetId != StringTable->EmptyString()) m##name##Asset = m##name##AssetId;
+
+#define scriptBindShapeAsset(name, consoleClass, docs) addProtectedField(assetText(name, File), TypeShapeFilename, Offset(m##name##Name, consoleClass), consoleClass::_set##name##Filename,  & defaultProtectedGetFn, assetText(name, docs)); \
+                                      addProtectedField(assetText(name, Asset), TypeShapeAssetId, Offset(m##name##AssetId, consoleClass), consoleClass::_set##name##Asset, & defaultProtectedGetFn, assetText(name, asset reference.));
+
+#define DECLARE_SHAPEASSET(className,name)\
+                                      StringTableEntry m##name##Name;\
+                                      StringTableEntry m##name##AssetId;\
+                                      AssetPtr<ShapeAsset>  m##name##Asset;\
+                                      const StringTableEntry& get##name() const { return m##name##Name; }\
+                                      void set##name(FileName _in) { m##name##Name = _in; }\
+                                      const AssetPtr<ShapeAsset> & get##name##Asset() const { return m##name##Asset; }\
+                                      void set##name##Asset(AssetPtr<ShapeAsset>_in) { m##name##Asset = _in; }\
+static bool _set##name##Filename(void* obj, const char* index, const char* data)\
+{\
+   className* shape = static_cast<className*>(obj);\
+   \
+   StringTableEntry assetId = ShapeAsset::getAssetIdByFilename(StringTable->insert(data));\
+   if (assetId != StringTable->EmptyString())\
+   {\
+      if (shape->_set##name##Asset(obj, index, assetId))\
+      {\
+         if (assetId == StringTable->insert("Core_Rendering:noShape"))\
+         {\
+            shape->m##name##Name = data;\
+            shape->m##name##AssetId = StringTable->EmptyString();\
+            \
+            return true;\
+         }\
+         else\
+         {\
+            shape->m##name##AssetId = assetId;\
+            shape->m##name##Name = StringTable->EmptyString();\
+            \
+            return false;\
+         }\
+      }\
+   }\
+   else\
+   {\
+      shape->m##name##Asset = StringTable->EmptyString();\
+   }\
+   \
+   return true;\
+}\
+\
+static bool _set##name##Asset(void* obj, const char* index, const char* data)\
+{\
+   className* shape = static_cast<className*>(obj);\
+   shape->m##name##AssetId = StringTable->insert(data);\
+   if (ShapeAsset::getAssetById(shape->m##name##AssetId, &shape->m##name##Asset))\
+   {\
+      if (shape->m##name##Asset.getAssetId() != StringTable->insert("Core_Rendering:noShape"))\
+         shape->m##name##Name = StringTable->EmptyString();\
+      return true;\
+   }\
+   return false;\
+}\
+void pack##name##Asset(BitStream *stream)\
+{\
+   if (stream->writeFlag(m##name##Asset.notNull()))\
+      stream->writeString(m##name##Asset.getAssetId());\
+   else\
+      stream->writeString(m##name##Name);\
+}\
+void unpack##name##Asset(BitStream *stream)\
+{\
+   if (stream->readFlag())\
+   {\
+      m##name##AssetId = stream->readSTString();\
+      ShapeAsset::getAssetById(m##name##AssetId, &m##name##Asset);\
+      m##name##Name = m##name##Asset->getShapeFilename(); \
+   }\
+   else\
+      m##name##Name = stream->readSTString();\
+}
 
 #endif
 
